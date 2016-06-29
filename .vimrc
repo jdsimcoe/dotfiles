@@ -19,6 +19,7 @@ Plugin 'neovimhaskell/haskell-vim'
 Plugin 'vim-scripts/SyntaxRange'
 Plugin 'tpope/vim-markdown'
 Plugin 'jethrovt/vim-basal-colorscheme'
+Plugin 'mileszs/ack.vim'
 call vundle#end()            " required
 
 set autoindent
@@ -44,3 +45,10 @@ set listchars=tab:▸\ ,eol:¬      " Whitespace character for :set list
 set noswapfile                   " Gets ride of the *.swp files
 map <C-n> :NERDTreeToggle<CR>    " Keyboard shortcut for Nerdtree
 autocmd BufNewFile,BufRead *.md set filetype=markdown "markdown syntax
+
+" Saner splits:
+" https://robots.thoughtbot.com/vim-splits-move-faster-and-more-naturally
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
