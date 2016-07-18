@@ -5,35 +5,30 @@ set t_Co=256
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
+Plugin 'sheerun/vim-polyglot'
 Plugin 'scrooloose/nerdtree'
-Plugin 'keith/rspec.vim'
 Plugin 'tpope/vim-endwise'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'bronson/vim-trailing-whitespace'
-Plugin 'bling/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
+Plugin 'itchyny/lightline.vim'
+Plugin 'hallzy/lightline-onedark'
 Plugin 'tpope/vim-fugitive'
-Plugin 'kchmck/vim-coffee-script'
 Plugin 'ctrlpvim/ctrlp.vim'
-Plugin 'neovimhaskell/haskell-vim'
 Plugin 'vim-scripts/SyntaxRange'
-Plugin 'tpope/vim-markdown'
 Plugin 'jethrovt/vim-basal-colorscheme'
 Plugin 'mileszs/ack.vim'
+Plugin 'joshdick/onedark.vim'
 call vundle#end()            " required
 
 set autoindent
 filetype plugin indent on    " required
 
 set laststatus=2
-let g:bufferline_echo = 0
-let g:airline#extensions#tabline#enabled = 1
-let g:airline_powerline_fonts = 1
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)|vendor\/bundle|vendor\/gems|tmp|node_modules$'
-let g:airline_theme='kalisi'
 
 syntax on                        " Enable syntax highlighting
-colorscheme basal
+let g:onedark_termcolors=256
+colorscheme onedark
 set tabstop=2                    " Softer tabs
 set shiftwidth=2
 set expandtab
@@ -45,6 +40,11 @@ set listchars=tab:▸\ ,eol:¬      " Whitespace character for :set list
 set noswapfile                   " Gets ride of the *.swp files
 map <C-n> :NERDTreeToggle<CR>    " Keyboard shortcut for Nerdtree
 autocmd BufNewFile,BufRead *.md set filetype=markdown "markdown syntax
+
+" Lightline stuff
+let g:lightline = {
+  \ 'colorscheme': 'onedark'
+  \ }
 
 " Saner splits:
 " https://robots.thoughtbot.com/vim-splits-move-faster-and-more-naturally
