@@ -1,4 +1,5 @@
-set nocompatible " Don't maintain compatibility with Vi.
+set encoding=utf-8
+set nocompatible "Don't maintain compatibility with Vi.
 set t_Co=256
 
 " set the runtime path to include Vundle and initialize
@@ -15,9 +16,9 @@ Plugin 'hallzy/lightline-onedark'
 Plugin 'tpope/vim-fugitive'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'vim-scripts/SyntaxRange'
-Plugin 'jethrovt/vim-basal-colorscheme'
+"Plugin 'jethrovt/vim-basal-colorscheme'
 Plugin 'mileszs/ack.vim'
-Plugin 'joshdick/onedark.vim'
+Plugin 'jdsimcoe/hyperterm.vim'
 call vundle#end()            " required
 
 set autoindent
@@ -25,10 +26,9 @@ filetype plugin indent on    " required
 
 set laststatus=2
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)|vendor\/bundle|vendor\/gems|tmp|node_modules$'
-
 syntax on                        " Enable syntax highlighting
-let g:onedark_termcolors=256
-colorscheme onedark
+colorscheme hyperterm
+set background=dark
 set tabstop=2                    " Softer tabs
 set shiftwidth=2
 set expandtab
@@ -42,9 +42,9 @@ map <C-n> :NERDTreeToggle<CR>    " Keyboard shortcut for Nerdtree
 autocmd BufNewFile,BufRead *.md set filetype=markdown "markdown syntax
 
 " Lightline stuff
-let g:lightline = {
-  \ 'colorscheme': 'onedark'
-  \ }
+"let g:lightline = {
+"  \ 'colorscheme': 'onedark'
+"  \ }
 
 " Saner splits:
 " https://robots.thoughtbot.com/vim-splits-move-faster-and-more-naturally
