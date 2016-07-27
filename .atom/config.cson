@@ -1,0 +1,19 @@
+"*":
+  core:
+    themes: [
+      "one-dark-ui"
+      "electron-highlighter-syntax"
+    ]
+  editor:
+    fontFamily: "SFMono-Regular"
+    fontSize: 16
+    preferredLineLength: 9999999
+    softWrap: true
+    tabType: "soft"
+  "exception-reporting":
+    userId: "cf2955b7-17a0-fe55-8d05-3c1e2fb0ae2a"
+  "one-dark-ui": {}
+  "one-light-ui":
+    layoutMode: "Spacious"
+  welcome:
+    showOnStartup: false
