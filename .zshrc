@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="hyperzsh"
+ZSH_THEME="dracula"
 POWERLINE_HIDE_USER_NAME="true"
 
 # Uncomment the following line to use case-sensitive completion.
@@ -55,15 +55,15 @@ source $ZSH/oh-my-zsh.sh
 ulimit -n 10000
 
 export PATH="/usr/local/heroku/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local:/usr/local/php5/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin"
-export PATH="$HOME/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
+# export PATH="$HOME/.rbenv/bin:$PATH"
+# eval "$(rbenv init -)"
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
 ### Text editor shortcut
-export EDITOR='atom'
+export EDITOR='vim'
 
 
 ### Go
@@ -120,6 +120,7 @@ alias show-all='defaults write com.apple.finder AppleShowAllFiles YES && killall
 alias hide-all='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
 alias install-sketchtool='sh /Applications/Sketch.app/Contents/Resources/sketchtool/install.sh'
 alias src="source ~/.zshrc"
+alias dispatch="cd /Users/jdsimcoe/Google\ Drive/Opal/Departments/Product/Design/Opal\ UI/Mobile/02_Base/Dispatch/Dispatch-iOS-design"
 
 # Jumps
 function j() {
