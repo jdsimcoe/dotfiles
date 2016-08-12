@@ -11,14 +11,13 @@ Plugin 'scrooloose/nerdtree'
 Plugin 'tpope/vim-endwise'
 Plugin 'jiangmiao/auto-pairs'
 Plugin 'bronson/vim-trailing-whitespace'
-Plugin 'itchyny/lightline.vim'
-Plugin 'hallzy/lightline-onedark'
+Plugin 'bling/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
 Plugin 'tpope/vim-fugitive'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'vim-scripts/SyntaxRange'
-"Plugin 'jethrovt/vim-basal-colorscheme'
 Plugin 'mileszs/ack.vim'
-Plugin 'jdsimcoe/hyperterm.vim'
+Plugin 'dracula/vim'
 call vundle#end()            " required
 
 set autoindent
@@ -26,9 +25,8 @@ filetype plugin indent on    " required
 
 set laststatus=2
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)|vendor\/bundle|vendor\/gems|tmp|node_modules$'
-syntax on                        " Enable syntax highlighting
-colorscheme hyperterm
-set background=dark
+syntax on
+color dracula
 set tabstop=2                    " Softer tabs
 set shiftwidth=2
 set expandtab
@@ -41,10 +39,10 @@ set noswapfile                   " Gets ride of the *.swp files
 map <C-n> :NERDTreeToggle<CR>    " Keyboard shortcut for Nerdtree
 autocmd BufNewFile,BufRead *.md set filetype=markdown "markdown syntax
 
-" Lightline stuff
-"let g:lightline = {
-"  \ 'colorscheme': 'onedark'
-"  \ }
+" Airline stuff
+let g:airline#extensions#tabline#enabled = 1
+let g:airline_powerline_fonts = 1
+let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)|vendor\/bundle|vendor\/gems|tmp|node_modules$'
 
 " Saner splits:
 " https://robots.thoughtbot.com/vim-splits-move-faster-and-more-naturally
