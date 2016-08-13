@@ -120,7 +120,6 @@ alias show-all='defaults write com.apple.finder AppleShowAllFiles YES && killall
 alias hide-all='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
 alias install-sketchtool='sh /Applications/Sketch.app/Contents/Resources/sketchtool/install.sh'
 alias src="source ~/.zshrc"
-alias dispatch="cd /Users/jdsimcoe/Google\ Drive/Opal/Departments/Product/Design/Opal\ UI/Mobile/02_Base/Dispatch/Dispatch-iOS-design"
 
 # Jumps
 function j() {
