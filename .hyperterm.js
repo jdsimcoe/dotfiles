@@ -4,15 +4,15 @@ module.exports = {
     windowSize: [1100, 700],
 
     // default font size in pixels for all tabs
-    fontSize: 16,
+    fontSize: 17,
 
     // font family with optional fallbacks
-    fontFamily: 'SFMono-Regular, Menlo, monospace',
+    fontFamily: 'SauceCodePowerline-Regular, Menlo, monospace',
 
     // terminal cursor background color (hex)
     cursorColor: 'rgba(249, 29, 230, 0.1)',
 
-    cursorShape: 'BLOCK',
+    cursorShape: 'BEAM',
 
     // color of the text
     foregroundColor: '#fff',
@@ -61,11 +61,8 @@ module.exports = {
   //   `@company/project`
   //   `project#1.0.1`
   plugins: [
-    // 'hyperterm-blink',
     'hyperlinks',
-    'hyperterm-1password',
-    'hyperterm-electron-highlighter'
-    // 'hyperborder'
+    'hyperterm-panda'
   ],
 
   // in development, you can create a directory under
