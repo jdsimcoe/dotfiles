@@ -1,31 +1,31 @@
 module.exports = {
   config: {
     // default font size in pixels for all tabs
-    fontSize: 17,
+    fontSize: 18,
 
     // font family with optional fallbacks
     fontFamily: 'SauceCodePowerline-Regular, Menlo, "DejaVu Sans Mono", "Lucida Console", monospace',
 
     // terminal cursor background color and opacity (hex, rgb, hsl, hsv, hwb or cmyk)
-    cursorColor: 'rgba(248,28,229,0.75)',
+    cursorColor: 'rgba(96, 91, 119, 0.9)',
 
     // `BEAM` for |, `UNDERLINE` for _, `BLOCK` for █
     cursorShape: 'BEAM',
 
     // color of the text
-    foregroundColor: 'rgba(255,255,255,.9)',
+    foregroundColor: '#a09bb7',
 
     // terminal background color
-    backgroundColor: '#000',
+    backgroundColor: '#2a2833',
 
     // border color (window, tabs)
-    borderColor: '#333',
+    borderColor: 'hsl(250, 12%, 14%)',
 
     // custom css to embed in the main window
     css: '',
 
     // custom css to embed in the terminal window
-    termCSS: '',
+    termCSS: 'x-screen a { color: #ffdc80; }',
 
     // custom padding (css format, i.e.: `top right bottom left`)
     padding: '12px 14px',
@@ -34,22 +34,22 @@ module.exports = {
     // including the 6 x 6 color cubes and the grayscale map, just provide
     // an array here instead of a color map object
     colors: {
-      black: '#000000',
-      red: '#ff0000',
-      green: '#33ff00',
-      yellow: '#ffff00',
-      blue: '#0066ff',
-      magenta: '#cc00ff',
-      cyan: '#00ffff',
-      white: '#d0d0d0',
-      lightBlack: '#808080',
-      lightRed: '#ff0000',
-      lightGreen: '#33ff00',
-      lightYellow: '#ffff00',
-      lightBlue: '#0066ff',
-      lightMagenta: '#cc00ff',
-      lightCyan: '#00ffff',
-      lightWhite: '#ffffff'
+      black: '#2a2833',
+      red: '#72654d',
+      green: '#605b76',
+      yellow: '#b8a066',
+      blue: '#6B52F0',
+      magenta: '#b6aaee',
+      cyan: '#ffdc80',
+      white: '#a09bb7',
+      lightBlack: '#2e2f31',
+      lightRed: '#72654d',
+      lightGreen: '#605b76',
+      lightYellow: '#b8a066',
+      lightBlue: '#6B52F0',
+      lightMagenta: '#b6aaee',
+      lightCyan: '#ffdc80',
+      lightWhite: '#a09bb7'
     },
 
     // the shell to run when spawning a new session (i.e. /usr/local/bin/fish)
