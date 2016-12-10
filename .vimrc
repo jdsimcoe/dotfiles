@@ -18,6 +18,7 @@ Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'vim-scripts/SyntaxRange'
 Plugin 'mileszs/ack.vim'
 Plugin 'dracula/vim'
+Plugin 'trevordmiller/nova-vim'
 call vundle#end()            " required
 
 set autoindent
@@ -26,7 +27,7 @@ filetype plugin indent on    " required
 set laststatus=2
 let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)|vendor\/bundle|vendor\/gems|tmp|node_modules$'
 syntax on
-color dracula
+color nova
 set tabstop=2                    " Softer tabs
 set shiftwidth=2
 set expandtab
@@ -50,3 +51,11 @@ nnoremap <C-J> <C-W><C-J>
 nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
+
+" Fixing backspace in Vim 8
+set backspace=2 " make backspace work like most other apps
+set backspace=indent,eol,start
+
+" Start NERDTree automatically
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
