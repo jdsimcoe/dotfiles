@@ -5,7 +5,7 @@ export ZSH=$HOME/.oh-my-zsh
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="dracula"
+ZSH_THEME="cobalt2"
 POWERLINE_HIDE_USER_NAME="true"
 
 # Uncomment the following line to use case-sensitive completion.
@@ -63,12 +63,15 @@ export PATH="/usr/local/heroku/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:
 # export LANG=en_US.UTF-8
 
 ### Text editor shortcut
-export EDITOR='vim'
+export EDITOR='atom'
 
 
 ### Go
 export GOPATH=$HOME/Go
 export PATH="$PATH:$GOPATH/bin"
+
+### Yarn
+export PATH="$PATH:`yarn global bin`"
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -104,21 +107,25 @@ alias io='imageOptim -d . -a'
 alias iod='imageOptim -d ~/Desktop -a'
 alias gphm='git push heroku master'
 alias sub='git submodule update --init --recursive'
-alias mail='vim /var/mail/jdsimcoe'
+alias mail='mvim /var/mail/jdsimcoe'
 alias sublp="~/Dropbox/Script/sublp.sh"
-alias team="vim ~/.teamocil"
+alias team="mvim ~/.teamocil"
 alias things="sh ~/Dropbox/Script/things.sh"
 alias hosts='atom /etc/hosts'
 alias vhosts='atom /etc/apache2/extra/httpd-vhosts.conf'
-alias git=hub
 alias dep='npm run deploy'
 alias ag='atom . && gulp'
 alias npmsucks='rm -rf node_modules/ && npm install'
 alias ls='ls -Glaph'
+alias opalstaging='heroku run rails console -a opalstaging'
 alias show-all='defaults write com.apple.finder AppleShowAllFiles YES && killall Finder'
 alias hide-all='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
 alias install-sketchtool='sh /Applications/Sketch.app/Contents/Resources/sketchtool/install.sh'
 alias src="source ~/.zshrc"
+alias dispatch="cd /Users/jdsimcoe/UI/_projects/design-dispatch/"
+alias au="cd ~/Tools/atom && git pull && script/build --install && cd ~"
+alias boot="rake dependency:bootstrap"
+alias pullboot="git pull && rake dependency:bootstrap"
 
 # Jumps
 function j() {
@@ -127,7 +134,7 @@ function j() {
 
 # Vim
 function v() {
-  mvim "$@"
+  vim "$@"
 }
 
 # Teamocil
@@ -229,4 +236,9 @@ funcion txt2b() {
 
 function b2txt() {
   echo "$@" | perl -lpe '$_=pack"B*",$_'
+}
+
+# Generate ICNS
+function icon() {
+ iconutil -c icns ~/Desktop/"$@".iconset
 }
