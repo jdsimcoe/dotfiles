@@ -1,0 +1,452 @@
+#!/usr/bin/env bash
+
+# @raycast.schemaVersion 1
+# @raycast.title Clean My Mac
+# @raycast.mode silent
+# @raycast.author Jonathan Simcoe
+# @raycast.authorURL https://jdsimcoe.com
+# @raycast.description Safe macOS maintenance + dev tooling cleanup (Safari, Dia, Node, Brew, Xcode).
+# @raycast.packageName Clean My Mac
+
+set -euo pipefail
+
+GREEN="\033[0;32m"; YELLOW="\033[1;33m"; RED="\033[0;31m"; NC="\033[0m"
+say_step() { printf "${YELLOW}▶ %s${NC}\n" "$1"; }
+say_ok()   { printf "${GREEN}✔ %s${NC}\n" "$1"; }
+say_warn() { printf "${RED}⚠ %s${NC}\n" "$1"; }
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  say_warn "This script is for macOS only."
+  exit 1
+fi
+
+# Capture initial disk space for summary
+INITIAL_AVAIL=$(df -k / | awk 'NR==2 {print $4}')
+
+# Request sudo and keep alive (some steps use it)
+if command -v sudo >/dev/null 2>&1; then
+  say_step "Requesting administrator privileges (sudo)..."
+  sudo -v || true
+  while true; do sudo -n true >/dev/null 2>&1 || true; sleep 60; done & KEEPALIVE_PID=$!
+fi
+
+########################################
+# 0) Helper: human-readable sizes
+########################################
+hr_size() {
+  local path="$1"
+  if [[ -e "$path" ]]; then
+    du -sh "$path" 2>/dev/null | awk '{print $1}'
+  else
+    echo "0B"
+  fi
+}
+
+########################################
+# 1) System overview
+########################################
+say_step "System overview:"
+df -h /
+echo ""
+say_step "Current memory pressure:"
+memory_pressure 2>/dev/null | grep -E "System-wide|free percentage" || echo "  (memory_pressure not available)"
+echo ""
+
+########################################
+# 2) System logs + caches (conservative)
+########################################
+say_step "Compacting system logs and pruning old caches..."
+if command -v log >/dev/null 2>&1; then
+  # Note: log erase requires sudo and clears unified logs
+  sudo log erase --all --local || true
+fi
+sudo find /var/log -type f -name "*.log" -size +50M -print -exec truncate -s 0 {} \; || true
+sudo find /var/log -type f -name "*.gz" -mtime +14 -print -delete || true
+
+# User caches (safe prune of older/larger files)
+# Note: /System/Library/Caches is protected by SIP on modern macOS
+USER_CACHE="${HOME}/Library/Caches"
+find "${USER_CACHE}" -type f -mtime +14 -size +256k -print -delete 2>/dev/null || true
+say_ok "Logs compacted and caches pruned."
+
+########################################
+# 3) BSD Periodic Maintenance Scripts
+########################################
+read -r -p "Run BSD periodic maintenance (daily/weekly/monthly scripts)? [y/N]: " PERIODIC_YN
+if [[ "${PERIODIC_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Running periodic maintenance scripts..."
+  sudo periodic daily weekly monthly || true
+  say_ok "Periodic maintenance completed."
+fi
+
+########################################
+# 4) Safari cleanup (prompted)
+########################################
+read -r -p "Clear Safari caches and site storage? [y/N]: " SAFARI_YN
+if [[ "${SAFARI_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Clearing Safari caches..."
+  SAFARI_DIR="${HOME}/Library/Safari"
+  echo "Safari Cache size: $(hr_size "${HOME}/Library/Caches/com.apple.Safari")"
+  rm -rf "${HOME}/Library/Caches/com.apple.Safari" || true
+  rm -rf "${SAFARI_DIR}/LocalStorage" || true
+  rm -rf "${SAFARI_DIR}/WebpageIcons.db" || true
+  rm -rf "${SAFARI_DIR}/Favicon Cache" || true
+  say_ok "Safari caches cleared. You may be logged out of some sites."
+fi
+
+########################################
+# 5) Dia browser cleanup (prompted)
+########################################
+read -r -p "Clear Dia browser caches (app cache, GPU cache, Code Cache)? [y/N]: " DIA_YN
+if [[ "${DIA_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Clearing Dia caches..."
+  DIA_SUPPORT="${HOME}/Library/Application Support/Dia"
+  DIA_CACHES="${HOME}/Library/Caches/Dia"
+  if [[ -d "${DIA_SUPPORT}" ]]; then
+    find "${DIA_SUPPORT}" -path "*/Cache/*" -type f -print -delete || true
+    find "${DIA_SUPPORT}" -path "*/GPUCache/*" -type f -print -delete || true
+    find "${DIA_SUPPORT}" -path "*/Code Cache/*" -type f -print -delete || true
+    find "${DIA_SUPPORT}" -path "*/IndexedDB/*" -type f -print -delete || true
+  fi
+  if [[ -d "${DIA_CACHES}" ]]; then
+    find "${DIA_CACHES}" -type f -print -delete || true
+  fi
+  say_ok "Dia caches cleared."
+fi
+
+########################################
+# 6) QuickLook caches
+########################################
+QUICKLOOK_CACHE="${HOME}/Library/Caches/com.apple.QuickLook.thumbnailcache"
+echo "QuickLook cache size: $(hr_size "${QUICKLOOK_CACHE}")"
+read -r -p "Clear QuickLook thumbnail cache? [y/N]: " QL_YN
+if [[ "${QL_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Clearing QuickLook cache..."
+  qlmanage -r cache 2>/dev/null || true
+  rm -rf "${QUICKLOOK_CACHE}" || true
+  rm -rf "${HOME}/Library/Caches/com.apple.QuickLookThumbnailsAgent" || true
+  say_ok "QuickLook cache cleared."
+fi
+
+########################################
+# 7) Font caches
+########################################
+read -r -p "Clear font caches (may require logout)? [y/N]: " FONT_YN
+if [[ "${FONT_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Clearing font caches..."
+  sudo atsutil databases -remove 2>/dev/null || true
+  say_ok "Font caches cleared. You may need to log out."
+fi
+
+########################################
+# 8) Mail app caches and attachments
+########################################
+MAIL_DATA="${HOME}/Library/Mail"
+MAIL_DOWNLOADS="${HOME}/Library/Containers/com.apple.mail/Data/Library/Mail Downloads"
+echo "Mail data size: $(hr_size "${MAIL_DATA}")"
+echo "Mail Downloads size: $(hr_size "${MAIL_DOWNLOADS}")"
+read -r -p "Clear Mail Downloads folder (saved attachments)? [y/N]: " MAIL_YN
+if [[ "${MAIL_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Clearing Mail Downloads..."
+  rm -rf "${MAIL_DOWNLOADS}"/* 2>/dev/null || true
+  say_ok "Mail Downloads cleared."
+fi
+
+########################################
+# 9) Crash reports and diagnostic reports
+########################################
+CRASH_USER="${HOME}/Library/Logs/DiagnosticReports"
+CRASH_SYS="/Library/Logs/DiagnosticReports"
+echo "User crash reports: $(hr_size "${CRASH_USER}")"
+echo "System crash reports: $(hr_size "${CRASH_SYS}")"
+read -r -p "Remove crash/diagnostic reports older than 30 days? [y/N]: " CRASH_YN
+if [[ "${CRASH_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Removing old crash reports..."
+  find "${CRASH_USER}" -type f -mtime +30 -print -delete 2>/dev/null || true
+  sudo find "${CRASH_SYS}" -type f -mtime +30 -print -delete 2>/dev/null || true
+  say_ok "Old crash reports removed."
+fi
+
+########################################
+# 10) Node tooling (npm/yarn/pnpm) caches
+########################################
+say_step "Detecting Node package manager caches..."
+NPM_CACHE="$(npm config get cache 2>/dev/null || echo "${HOME}/.npm/_cacache")"
+YARN_CACHE="${HOME}/Library/Caches/Yarn"
+PNPM_STORE="${HOME}/Library/pnpm/store"
+echo "npm cache: ${NPM_CACHE} (size: $(hr_size "${NPM_CACHE}"))"
+echo "yarn cache: ${YARN_CACHE} (size: $(hr_size "${YARN_CACHE}"))"
+echo "pnpm store: ${PNPM_STORE} (size: $(hr_size "${PNPM_STORE}"))"
+
+read -r -p "Clean npm cache via 'npm cache clean --force'? [y/N]: " NPM_YN
+if [[ "${NPM_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Cleaning npm cache..."
+  npm cache clean --force || true
+  say_ok "npm cache cleaned."
+fi
+
+read -r -p "Clean Yarn cache via 'yarn cache clean'? [y/N]: " YARN_YN
+if [[ "${YARN_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Cleaning Yarn cache..."
+  if command -v yarn >/dev/null 2>&1; then
+    yarn cache clean || true
+  else
+    say_warn "Yarn not found; skipping."
+  fi
+fi
+
+read -r -p "Prune pnpm store (remove orphaned packages)? [y/N]: " PNPM_YN
+if [[ "${PNPM_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Pruning pnpm store..."
+  if command -v pnpm >/dev/null 2>&1; then
+    pnpm store prune || true
+  else
+    say_warn "pnpm not found; skipping."
+  fi
+fi
+
+########################################
+# 11) Homebrew cleanup
+########################################
+say_step "Homebrew maintenance (cleanup, autoremove, prune downloads)..."
+if command -v brew >/dev/null 2>&1; then
+  brew update || true
+  brew cleanup -s || true         # remove old versions & cached downloads
+  brew autoremove || true         # remove unused deps
+  # Purge large leftover files in ~/Library/Caches/Homebrew older than 14 days
+  HB_CACHE="${HOME}/Library/Caches/Homebrew"
+  find "${HB_CACHE}" -type f -mtime +14 -size +100M -print -delete 2>/dev/null || true
+  say_ok "Homebrew cleaned."
+else
+  say_warn "Homebrew not found; skipping."
+fi
+
+########################################
+# 12) Xcode + Developer caches (prompted)
+########################################
+DEV_DIR="${HOME}/Library/Developer"
+DERIVED_DATA="${DEV_DIR}/Xcode/DerivedData"
+MODULE_CACHE="${DEV_DIR}/Xcode/ModuleCache.noindex"
+SIMULATORS="${DEV_DIR}/CoreSimulator"
+DT_TOOLCHAINS="${DEV_DIR}/Xcode/Archives"
+DOCSETS="${DEV_DIR}/Documentation/DocSets"
+IOS_SUPPORT="${DEV_DIR}/Xcode/iOS DeviceSupport"
+WATCHOS_SUPPORT="${DEV_DIR}/Xcode/watchOS DeviceSupport"
+
+echo "DerivedData size: $(hr_size "${DERIVED_DATA}")"
+echo "ModuleCache size: $(hr_size "${MODULE_CACHE}")"
+echo "CoreSimulator size: $(hr_size "${SIMULATORS}")"
+echo "Xcode Archives size: $(hr_size "${DT_TOOLCHAINS}")"
+echo "DocSets size: $(hr_size "${DOCSETS}")"
+echo "iOS DeviceSupport size: $(hr_size "${IOS_SUPPORT}")"
+echo "watchOS DeviceSupport size: $(hr_size "${WATCHOS_SUPPORT}")"
+
+read -r -p "Remove Xcode DerivedData (safe to rebuild)? [y/N]: " DD_YN
+if [[ "${DD_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Removing DerivedData..."
+  rm -rf "${DERIVED_DATA}" || true
+  say_ok "DerivedData removed."
+fi
+
+read -r -p "Clear Xcode ModuleCache (rebuilds next compile)? [y/N]: " MC_YN
+if [[ "${MC_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Clearing ModuleCache..."
+  rm -rf "${MODULE_CACHE}" || true
+  say_ok "ModuleCache cleared."
+fi
+
+read -r -p "Remove iOS/watchOS DeviceSupport older than 180 days? [y/N]: " IOSDS_YN
+if [[ "${IOSDS_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Removing old iOS/watchOS DeviceSupport files..."
+  find "${IOS_SUPPORT}" -mindepth 1 -maxdepth 1 -type d -mtime +180 -print -exec rm -rf {} \; 2>/dev/null || true
+  find "${WATCHOS_SUPPORT}" -mindepth 1 -maxdepth 1 -type d -mtime +180 -print -exec rm -rf {} \; 2>/dev/null || true
+  say_ok "Old DeviceSupport files removed."
+fi
+
+read -r -p "Prune old iOS simulator device logs (>30d)? [y/N]: " SIMLOG_YN
+if [[ "${SIMLOG_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Pruning CoreSimulator logs older than 30 days..."
+  find "${SIMULATORS}" -path "*/data/Library/Logs/*" -type f -mtime +30 -print -delete 2>/dev/null || true
+  say_ok "Simulator logs pruned."
+fi
+
+read -r -p "Delete old Xcode Archives (>90d)? [y/N]: " ARCH_YN
+if [[ "${ARCH_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Deleting Xcode Archives older than 90 days..."
+  find "${DT_TOOLCHAINS}" -type d -mtime +90 -print -exec rm -rf {} \; 2>/dev/null || true
+  say_ok "Old archives deleted."
+fi
+
+read -r -p "Remove downloaded DocSets (>180d)? [y/N]: " DOCSET_YN
+if [[ "${DOCSET_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Removing old DocSets..."
+  find "${DOCSETS}" -type d -mtime +180 -print -exec rm -rf {} \; 2>/dev/null || true
+  say_ok "DocSets removed."
+fi
+
+########################################
+# 13) iOS Backups
+########################################
+IOS_BACKUPS="${HOME}/Library/Application Support/MobileSync/Backup"
+echo "iOS Backups size: $(hr_size "${IOS_BACKUPS}")"
+read -r -p "List iOS backups for review? [y/N]: " BACKUP_LIST_YN
+if [[ "${BACKUP_LIST_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "iOS backups found:"
+  if [[ -d "${IOS_BACKUPS}" ]]; then
+    for backup in "${IOS_BACKUPS}"/*; do
+      [[ -d "$backup" ]] || continue
+      echo "  $(basename "$backup"): $(hr_size "$backup")"
+    done
+  else
+    echo "  No iOS backups found."
+  fi
+  say_warn "Delete old backups manually via Finder > Manage Backups or System Settings."
+fi
+
+########################################
+# 14) Time Machine local snapshots
+########################################
+read -r -p "Delete local Time Machine snapshots? [y/N]: " TM_YN
+if [[ "${TM_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Removing local Time Machine snapshots..."
+  snapshots=$(tmutil listlocalsnapshotdates / 2>/dev/null | tail -n +2)
+  if [[ -n "$snapshots" ]]; then
+    echo "$snapshots" | while read -r snap; do
+      [[ -n "$snap" ]] && sudo tmutil deletelocalsnapshots "$snap" 2>/dev/null || true
+    done
+    say_ok "Time Machine local snapshots removed."
+  else
+    say_ok "No local snapshots found."
+  fi
+fi
+
+########################################
+# 15) Containers (prompted, conservative)
+########################################
+CONTAINERS_DIR="${HOME}/Library/Containers"
+echo "Containers size: $(hr_size "${CONTAINERS_DIR}")"
+read -r -p "Prune cache files inside ~/Library/Containers (>256KB, older than 14d)? [y/N]: " CONT_YN
+if [[ "${CONT_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Pruning container caches..."
+  find "${CONTAINERS_DIR}" -path "*/Data/Library/Caches/*" -type f -mtime +14 -size +256k -print -delete 2>/dev/null || true
+  find "${CONTAINERS_DIR}" -path "*/Data/Library/Logs/*" -type f -mtime +30 -size +1M -print -delete 2>/dev/null || true
+  say_ok "Container caches pruned."
+fi
+
+########################################
+# 16) Launch Services database rebuild
+########################################
+read -r -p "Rebuild Launch Services database (fixes 'Open With' issues)? [y/N]: " LS_YN
+if [[ "${LS_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Rebuilding Launch Services database..."
+  /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user 2>/dev/null || true
+  say_ok "Launch Services database rebuilt."
+fi
+
+########################################
+# 17) Orphaned Application Support detection
+########################################
+read -r -p "Scan for orphaned Application Support folders? [y/N]: " ORPHAN_YN
+if [[ "${ORPHAN_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Scanning for potential orphans..."
+  APP_SUPPORT="${HOME}/Library/Application Support"
+  orphan_count=0
+  for dir in "${APP_SUPPORT}"/*; do
+    [[ -d "$dir" ]] || continue
+    name="$(basename "$dir")"
+    # Skip common system folders
+    [[ "$name" == "com.apple."* ]] && continue
+    [[ "$name" == "AddressBook" ]] && continue
+    [[ "$name" == "Dock" ]] && continue
+    [[ "$name" == "iCloud" ]] && continue
+    # Check if matching .app exists
+    if ! ls /Applications/*"${name}"*.app &>/dev/null 2>&1 && \
+       ! ls "${HOME}/Applications/"*"${name}"*.app &>/dev/null 2>&1 && \
+       ! ls /System/Applications/*"${name}"*.app &>/dev/null 2>&1; then
+      size=$(hr_size "$dir")
+      echo "  Potential orphan: ${name} (${size})"
+      ((orphan_count++)) || true
+    fi
+  done
+  if [[ $orphan_count -eq 0 ]]; then
+    say_ok "No obvious orphans detected."
+  else
+    say_warn "Found ${orphan_count} potential orphans. Review and delete manually to avoid removing needed data."
+  fi
+fi
+
+########################################
+# 18) Login items listing
+########################################
+read -r -p "List login/startup items for review? [y/N]: " LOGIN_YN
+if [[ "${LOGIN_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Login items (manage via System Settings > General > Login Items):"
+  osascript -e 'tell application "System Events" to get the name of every login item' 2>/dev/null || echo "  (Unable to retrieve login items)"
+  echo ""
+  say_step "Background items (Launch Agents):"
+  ls "${HOME}/Library/LaunchAgents" 2>/dev/null | head -20 || echo "  (none)"
+  say_warn "Disable unwanted items in System Settings to speed up boot."
+fi
+
+########################################
+# 19) DNS cache + Spotlight (optional)
+########################################
+say_step "Flushing DNS cache..."
+sudo dscacheutil -flushcache || true
+sudo killall -HUP mDNSResponder || true
+say_ok "DNS cache flushed."
+
+read -r -p "Rebuild Spotlight index (can take hours)? [y/N]: " SPOT_YN
+if [[ "${SPOT_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Rebuilding Spotlight index..."
+  sudo mdutil -i off /
+  sudo mdutil -E /
+  sudo mdutil -i on /
+  say_ok "Spotlight reindex started."
+fi
+
+########################################
+# 20) Empty Trash (prompted)
+########################################
+read -r -p "Empty Trash for all volumes? [y/N]: " TRASH_YN
+if [[ "${TRASH_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Emptying Trash..."
+  rm -rf "${HOME}/.Trash/"* || true
+  for vol in /Volumes/*; do
+    [[ -d "$vol" ]] || continue
+    sudo rm -rf "$vol/.Trashes/"* 2>/dev/null || true
+  done
+  say_ok "Trash emptied."
+fi
+
+########################################
+# 21) Report + optional reboot
+########################################
+say_step "Final disk space:"
+df -h /
+
+# Calculate space recovered
+FINAL_AVAIL=$(df -k / | awk 'NR==2 {print $4}')
+RECOVERED_KB=$((FINAL_AVAIL - INITIAL_AVAIL))
+if [[ $RECOVERED_KB -gt 0 ]]; then
+  RECOVERED_MB=$((RECOVERED_KB / 1024))
+  if [[ $RECOVERED_MB -gt 1024 ]]; then
+    RECOVERED_GB=$(echo "scale=2; $RECOVERED_MB / 1024" | bc)
+    say_ok "Approximate space recovered: ${RECOVERED_GB} GB"
+  else
+    say_ok "Approximate space recovered: ${RECOVERED_MB} MB"
+  fi
+else
+  say_ok "Disk space unchanged (some cleanups may show after reboot)."
+fi
+
+say_ok "Maintenance complete. A reboot can help finalize cleanup."
+read -r -p "Reboot now? [y/N]: " REBOOT_YN
+if [[ "${REBOOT_YN:-N}" =~ ^[Yy]$ ]]; then
+  say_step "Rebooting..."
+  sudo shutdown -r now
+fi
+
+if [[ -n "${KEEPALIVE_PID:-}" ]]; then
+  kill "$KEEPALIVE_PID" 2>/dev/null || true
+fi

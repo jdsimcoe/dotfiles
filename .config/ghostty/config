@@ -1,0 +1,26 @@
+# Ghostty
+auto-update-channel = tip
+#theme = Paraiso Dark
+theme = Atom
+
+# Term
+term = xterm-ghostty
+title = Ghostty 
+
+# fonts
+font-family = "Monaspace Xenon"
+font-size = 16
+macos-titlebar-style = tabs
+
+# window stuff
+adjust-cell-height = 6
+window-height = 36
+window-vsync = true
+window-width = 132
+window-save-state = "always"
+
+# theme
+# background = 18171c
+# foreground = efecf4
+
+keybind = shift+enter=text:\n

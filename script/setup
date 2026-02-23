@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BACKUP_ROOT="${HOME}/.dotfiles-backups/$(date +%Y%m%d-%H%M%S)"
+RUN_BREW=1
+RUN_MACOS=1
+
+for arg in "$@"; do
+  case "$arg" in
+    --skip-brew)
+      RUN_BREW=0
+      ;;
+    --skip-macos)
+      RUN_MACOS=0
+      ;;
+    *)
+      printf '%s\n' "Unknown option: $arg"
+      printf '%s\n' "Usage: $0 [--skip-brew] [--skip-macos]"
+      exit 1
+      ;;
+  esac
+done
+
+log() {
+  printf '%s\n' "$*"
+}
+
+backup_if_needed() {
+  local target="$1"
+  local source="$2"
+
+  if [[ -L "$target" ]]; then
+    local current
+    current="$(readlink "$target")"
+    if [[ "$current" == "$source" ]]; then
+      log "skip  $target (already linked)"
+      return 1
+    fi
+  fi
+
+  if [[ -e "$target" || -L "$target" ]]; then
+    mkdir -p "$BACKUP_ROOT"
+    local backup_path="${BACKUP_ROOT}${target#$HOME}"
+    mkdir -p "$(dirname "$backup_path")"
+    mv "$target" "$backup_path"
+    log "backup $target -> $backup_path"
+  fi
+
+  return 0
+}
+
+link_path() {
+  local source="$1"
+  local target="$2"
+
+  mkdir -p "$(dirname "$target")"
+
+  if backup_if_needed "$target" "$source"; then
+    ln -s "$source" "$target"
+    log "link  $target -> $source"
+  fi
+}
+
+log "Repo: $REPO_ROOT"
+
+# Shell config
+link_path "$REPO_ROOT/.zshrc" "$HOME/.zshrc"
+
+# Neovim (LazyVim-based config)
+link_path "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
+
+# Ghostty (macOS app support path)
+link_path "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+
+# Karabiner-Elements
+link_path "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+link_path "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
+
+# Zed editor (user settings)
+link_path "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
+
+if [[ $RUN_BREW -eq 1 ]]; then
+  if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/brew.sh" ]]; then
+    log "run   $REPO_ROOT/brew.sh"
+    bash "$REPO_ROOT/brew.sh"
+  else
+    log "skip  brew.sh (not macOS or file missing)"
+  fi
+else
+  log "skip  brew.sh (--skip-brew)"
+fi
+
+if [[ $RUN_MACOS -eq 1 ]]; then
+  if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/.macos" ]]; then
+    log "run   $REPO_ROOT/.macos"
+    bash "$REPO_ROOT/.macos"
+  else
+    log "skip  .macos (not macOS or file missing)"
+  fi
+else
+  log "skip  .macos (--skip-macos)"
+fi
+
+log "Done."

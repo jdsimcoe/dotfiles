@@ -1,0 +1,22 @@
+{
+  "title": "F12 to Hyper",
+  "rules": [
+    {
+      "description": "F12 -> Hyper (^⌥⌘⇧)",
+      "manipulators": [
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "f12"
+          },
+          "to": [
+            {
+              "key_code": "left_shift",
+              "modifiers": ["left_command", "left_control", "left_option"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+.DS_Store
+
+# Local machine-only shell overrides/secrets
+.zshrc.local
+
+# Zed runtime/user data (track only explicit config files copied into .config/zed)
+.config/zed/conversations/
+.config/zed/prompts/
+.config/zed/themes/
+
+# Karabiner runtime backups (track canonical config only)
+.config/karabiner/automatic_backups/

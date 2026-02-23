@@ -1,244 +1,131 @@
-# Path to your oh-my-zsh installation.
-export ZSH=$HOME/.oh-my-zsh
+# ZSH
+ls --version &>/dev/null
+if [ $? -eq 0 ]; then
+  lsflags="--color --group-directories-first -F"
+else
+  lsflags="-Glaph"
+  export CLICOLOR=1
+fi
+alias ls="ls ${lsflags}"
+alias ll="ls ${lsflags} -l"
+alias la="ls ${lsflags} -la"
+alias clean="~/.local/bin/clean-dock.sh"
+alias bt="sudo pkill bluetoothd"
+alias h="history"
+alias hg="history -1000 | grep -i"
+alias ,="cd .."
+alias m="less"
+alias dns-flush='sudo killall -HUP mDNSResponder'
+alias reset-mail='sh ~/Developer/scripts/reset-mail.sh'
+alias yarnclean='rm -rf node_modules/ && rm -rf package-lock.json && yarn'
+alias src='source ~/.zshrc'
+autoload -Uz compinit && compinit
+setopt complete_in_word         # cd /ho/sco/tm<TAB> expands to /home/scott/tmp
+setopt auto_menu                # show completion menu on succesive tab presses
+setopt autocd                   # cd to a folder just by typing it's name
+ZLE_REMOVE_SUFFIX_CHARS=$' \t\n;&' # These "eat" the auto prior space after a tab complete
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-ZSH_THEME="cobalt2"
-POWERLINE_HIDE_USER_NAME="true"
+# Brew
+eval "$(/opt/homebrew/bin/brew shellenv)"
+export PATH="/opt/homebrew/bin:$PATH"
+export CPATH="/opt/homebrew/include"
+export LIBRARY_PATH="/opt/homebrew/lib"
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+# Zed
+#export EDITOR="zed --wait"
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
+# Cursor
+alias cursor='open -b com.todesktop.230313mzl4w4u92 "$@"'
 
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
+# Claude Code
+# Set in ~/.zshrc.local (untracked)
 
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git,jump,bower)
-
-source $ZSH/oh-my-zsh.sh
-
-# User configuration
-
-ulimit -n 10000
-
-export PATH="/usr/local/heroku/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local:/usr/local/php5/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin"
-# export PATH="$HOME/.rbenv/bin:$PATH"
-# eval "$(rbenv init -)"
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-### Text editor shortcut
-export EDITOR='atom'
-
-
-### Go
-export GOPATH=$HOME/Go
-export PATH="$PATH:$GOPATH/bin"
-
-### Yarn
-export PATH="$PATH:`yarn global bin`"
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-export SSH_KEY_PATH="~/.ssh/rsa_id"
-
-# powerline
-# . /usr/local/lib/python2.7/site-packages/powerline/bindings/bash/powerline.sh
-
-TERM="xterm-256color"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
-### Some Aliases
-alias start='sudo apachectl start'
-alias stop='sudo apachectl stop'
-alias restart='sudo apachectl restart'
-alias back1='cd ..'
-alias back2='cd ../..'
-alias back3='cd ../../..'
-alias back4='cd ../../../..'
-alias cha='sudo chmod -R 777 .'
-alias svd='svgo -f ~/Desktop'
-alias io='imageOptim -d . -a'
-alias iod='imageOptim -d ~/Desktop -a'
-alias gphm='git push heroku master'
-alias sub='git submodule update --init --recursive'
-alias mail='mvim /var/mail/jdsimcoe'
-alias sublp="~/Dropbox/Script/sublp.sh"
-alias team="mvim ~/.teamocil"
-alias things="sh ~/Dropbox/Script/things.sh"
-alias hosts='atom /etc/hosts'
-alias vhosts='atom /etc/apache2/extra/httpd-vhosts.conf'
-alias dep='npm run deploy'
-alias ag='atom . && gulp'
-alias npmsucks='rm -rf node_modules/ && npm install'
-alias ls='ls -Glaph'
-alias opalstaging='heroku run rails console -a opalstaging'
-alias show-all='defaults write com.apple.finder AppleShowAllFiles YES && killall Finder'
-alias hide-all='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
-alias install-sketchtool='sh /Applications/Sketch.app/Contents/Resources/sketchtool/install.sh'
-alias src="source ~/.zshrc"
-alias dispatch="cd /Users/jdsimcoe/UI/_projects/design-dispatch/"
-alias au="cd ~/Tools/atom && git pull && script/build --install && cd ~"
-alias boot="rake dependency:bootstrap"
-alias pullboot="git pull && rake dependency:bootstrap"
-
-# Jumps
-function j() {
-  jump "$@"
-}
-
-# Vim
-function v() {
-  vim "$@"
-}
-
-# Teamocil
-function t() {
-  teamocil "$@"
-}
-
-# chmod a directory
-function ch() {
-  sudo chmod -R 777 "$@"
-}
-
-# chown a directory
-function cho() {
-  sudo chown -R www:www "$@"
-}
-
-# Do a Git clone
-function gcl() {
-  git clone "$@"
-}
-
-# Do a Git commit
+# GIT
+alias gd="git diff"
+alias gs="git status 2>/dev/null"
+alias ga='git add .; git add -u'
+alias gp='git push'
+alias gpr='gh pr create'
+function gc() { git clone ssh://git@github.com/"$*" }
+function gg() { git commit -m "$*" }
 function gc() {
-  git add .;git add -u :/;git commit -m "$@";
+  git add .;
+  git add -u;
+  git commit -m $@;
 }
-
-# Do a Git push from the current branch
-function gp() {
-  git push origin "$@"
-}
-
-# Do a Git push setting the upstream from your current branch
-function gpu() {
-  git push --set-upstream origin "$@"
-}
-
-# Do a Git commit/push
 function gcp() {
-  git add .;git add -u :/;git commit -m "$@";git push
+  git add .;
+  git add -u;
+  git commit -m $@;
+  git push;
 }
 
-# Do a Git commit/push/deploy
-function gcpd() {
-  git add .;git add -u :/;git commit -m "$@";git push;sh utilities/deploy.sh
-}
-
-# Do a Git rebase
-function gpr() {
-  git pull --rebase "$@"
-}
-
-# Do a Git commit/push and a heroku deploy
-function gcph() {
-  git add .;git add -u :/;git commit -m "$@";git push;git push heroku master
-}
-
-# Do a Heroku commit/push/deploy
-function gph() {
-  git add .;git add -u :/;git commit -m "$@";git push heroku master
-}
-
-# Install a Gulp plugin and save to devDependencies
-function gi() {
-  npm install --save-dev gulp-"$@"
-}
-
-# Install a generic NPM module and save to devDependencies
-function npmi() {
-  npm install --save-dev "$@"
-}
-
-# svgo a directory
-function sv() {
-  svgo -f "$@"
-}
-
-# base64 image encoding
-function base() {
-  base64 -o ~/Desktop/base64.txt -i "$@"
-  pbcopy < ~/Desktop/base64.txt
-  rm -Rf ~/Desktop/base64.txt
-}
-
-# KillAll stuff
-function ka() {
-  killall "$@"
-}
-
-# WebKit2PNG security
-function snap() {
-  webkit2png -F -W 1440 -D ~/Snaps/ --ignore-ssl-check "$@" && open ~/Snaps
-}
-
-# Binary conversion
-funcion txt2b() {
-  echo "$@" | perl -lpe '$_=unpack"B*"'
-}
-
-function b2txt() {
-  echo "$@" | perl -lpe '$_=pack"B*",$_'
-}
-
-# Generate ICNS
+# Icon generator
 function icon() {
  iconutil -c icns ~/Desktop/"$@".iconset
 }
+
+function iconstyle() {
+  # Reset Slack icon
+  sudo chown -R jdsimcoe:staff /Applications/Slack.app
+  sudo chmod -R 755 /Applications/Slack.app
+  cp ~/Documents/Icons/Slack.icns /Applications/Slack.app/Contents/Resources/electron.icns
+
+  # Reset Figma icon
+  sudo chown -R jdsimcoe:staff /Applications/Figma.app
+  sudo chmod -R 755 /Applications/Figma.app
+  cp ~/Desktop/Figma.icns /Applications/Figma.app/Contents/Resources/electron.icns
+
+  # Clean system icon cache (safely)
+  rm -f /var/folders/*/*/*/com.apple.dock.iconcache 2>/dev/null
+  sudo rm -rfv /Library/Caches/com.apple.iconservices.store 2>/dev/null
+  sudo find /private/var/folders/ \( -name com.apple.dock.iconcache -or -name com.apple.iconservices* \) -exec rm -rfv {} + 2>/dev/null
+
+  # Refresh all app icon metadata (may show errors for SIP-protected apps)
+  sudo touch /Applications/* 2>/dev/null
+
+  # Restart dock & finder
+  killall Dock
+  killall Finder
+}
+
+function remove-sentinel() {
+  sudo launchctl remove com.sentinelone.sentineld-helper
+  sudo launchctl remove com.sentinelone.sentineld-updater
+  sudo launchctl remove com.sentinelone.sentineld
+  sudo launchctl remove com.sentinelone.sentineld-guard
+
+  sudo rm -rf /Library/Extensions/Sentinel.kext
+  sudo rm -rf /Library/LaunchAgents/com.sentinelone.agent.plist
+  sudo rm -rf /Library/LaunchDaemons/com.sentinelone.sentineld-guard.plist
+  sudo rm -rf /Library/LaunchDaemons/com.sentinelone.sentineld-helper.plist
+  sudo rm -rf /Library/LaunchDaemons/com.sentinelone.sentineld-updater.plist
+  sudo rm -rf /Library/LaunchDaemons/com.sentinelone.sentineld.plist
+  sudo rm -rf /Library/Preferences/Logging/Subsystems/com.sentinelone.sentinelctl.plist
+  sudo rm -rf /Library/Preferences/Logging/Subsystems/com.sentinelone.sentineld-guard.plist
+  sudo rm -rf /Library/Preferences/Logging/Subsystems/com.sentinelone.sentineld-helper.plist
+  sudo rm -rf /Library/Preferences/Logging/Subsystems/com.sentinelone.sentineld-updater.plist
+  sudo rm -rf /Library/Preferences/Logging/Subsystems/com.sentinelone.sentineld.plist
+  sudo rm -rf /Library/Sentinel
+  sudo rm -rf /private/etc/asl/com.sentinelone.sentinel
+  sudo rm -rf /usr/local/share/man/man1/sentinelctl.1
+
+  sudo pkgutil --forget com.sentinelone.pkg.sentinel-agent
+}
+
+# Direnv
+eval "$(direnv hook zsh)"
+
+# Starship prompt
+eval "$(starship init zsh)"
+
+# Vercel AI Gateway
+# Set in ~/.zshrc.local (untracked)
+export PATH="$HOME/.local/bin:$PATH"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# Local machine-only secrets and overrides
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
