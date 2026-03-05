@@ -6,6 +6,7 @@ else
   lsflags="-Glaph"
   export CLICOLOR=1
 fi
+alias lg="lazygit"
 alias ls="ls ${lsflags}"
 alias ll="ls ${lsflags} -l"
 alias la="ls ${lsflags} -la"

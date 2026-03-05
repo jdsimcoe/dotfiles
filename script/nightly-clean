@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+# nightly-clean — Lightweight unattended macOS maintenance
+# Designed to run via launchd at midnight. No prompts, no browser caches.
+# Resets bluetooth, flushes DNS, prunes system caches, restarts the machine.
+#
+# Author: Jonathan Simcoe
+# See also: script/clean (interactive, full version)
+
+set -euo pipefail
+
+LOG="/tmp/nightly-clean-$(date +%Y%m%d).log"
+exec > >(tee -a "$LOG") 2>&1
+
+echo "========================================="
+echo "nightly-clean — $(date)"
+echo "========================================="
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "ERROR: This script is for macOS only."
+  exit 1
+fi
+
+########################################
+# 1) Bluetooth service reset
+########################################
+echo "▶ Resetting Bluetooth service..."
+if pkill -HUP bluetoothd 2>/dev/null; then
+  echo "✔ Bluetooth daemon restarted (HUP signal sent)."
+else
+  # Fallback: full kill (launchd will respawn it)
+  killall bluetoothd 2>/dev/null || true
+  echo "✔ Bluetooth daemon killed (launchd will respawn)."
+fi
+
+########################################
+# 2) Flush DNS cache
+########################################
+echo "▶ Flushing DNS cache..."
+dscacheutil -flushcache || true
+killall -HUP mDNSResponder 2>/dev/null || true
+echo "✔ DNS cache flushed."
+
+########################################
+# 3) System logs (truncate bloated logs, remove old archives)
+########################################
+echo "▶ Pruning system logs..."
+find /var/log -type f -name "*.log" -size +50M -exec truncate -s 0 {} \; 2>/dev/null || true
+find /var/log -type f -name "*.gz" -mtime +14 -delete 2>/dev/null || true
+echo "✔ System logs pruned."
+
+########################################
+# 4) User-level cache pruning
+#    (Skip browser caches — only prune general app caches)
+########################################
+echo "▶ Pruning user caches (excluding browsers)..."
+USER_CACHE="${HOME}/Library/Caches"
+
+# Prune old, large files from user caches — but skip browser directories
+find "${USER_CACHE}" \
+  -not -path "*/com.apple.Safari*" \
+  -not -path "*/Dia*" \
+  -not -path "*/Google/Chrome*" \
+  -not -path "*/Firefox*" \
+  -not -path "*/Arc*" \
+  -not -path "*/BraveSoftware*" \
+  -not -path "*/Microsoft Edge*" \
+  -type f -mtime +14 -size +256k -delete 2>/dev/null || true
+echo "✔ User caches pruned (browsers untouched)."
+
+########################################
+# 5) QuickLook cache
+########################################
+echo "▶ Clearing QuickLook cache..."
+qlmanage -r cache 2>/dev/null || true
+rm -rf "${HOME}/Library/Caches/com.apple.QuickLook.thumbnailcache" 2>/dev/null || true
+rm -rf "${HOME}/Library/Caches/com.apple.QuickLookThumbnailsAgent" 2>/dev/null || true
+echo "✔ QuickLook cache cleared."
+
+########################################
+# 6) Font caches
+########################################
+echo "▶ Clearing font caches..."
+atsutil databases -remove 2>/dev/null || true
+echo "✔ Font caches cleared."
+
+########################################
+# 7) Crash reports older than 30 days
+########################################
+echo "▶ Removing old crash reports..."
+find "${HOME}/Library/Logs/DiagnosticReports" -type f -mtime +30 -delete 2>/dev/null || true
+find /Library/Logs/DiagnosticReports -type f -mtime +30 -delete 2>/dev/null || true
+echo "✔ Old crash reports removed."
+
+########################################
+# 8) Container cache pruning
+########################################
+echo "▶ Pruning container caches..."
+CONTAINERS_DIR="${HOME}/Library/Containers"
+find "${CONTAINERS_DIR}" -path "*/Data/Library/Caches/*" -type f -mtime +14 -size +256k -delete 2>/dev/null || true
+find "${CONTAINERS_DIR}" -path "*/Data/Library/Logs/*" -type f -mtime +30 -size +1M -delete 2>/dev/null || true
+echo "✔ Container caches pruned."
+
+########################################
+# 9) BSD periodic maintenance
+########################################
+echo "▶ Running periodic maintenance scripts..."
+periodic daily weekly monthly 2>/dev/null || true
+echo "✔ Periodic maintenance completed."
+
+########################################
+# 10) Purge inactive memory
+########################################
+echo "▶ Purging inactive memory..."
+purge 2>/dev/null || true
+echo "✔ Memory purged."
+
+########################################
+# 11) Flush APFS snapshot metadata
+########################################
+echo "▶ Cleaning stale APFS snapshots..."
+SNAPSHOTS=$(tmutil listlocalsnapshotdates / 2>/dev/null | tail -n +2 || true)
+if [[ -n "$SNAPSHOTS" ]]; then
+  SNAP_COUNT=0
+  echo "$SNAPSHOTS" | while read -r snap; do
+    [[ -n "$snap" ]] && tmutil deletelocalsnapshots "$snap" 2>/dev/null || true
+    ((SNAP_COUNT++)) || true
+  done
+  echo "✔ Local Time Machine snapshots removed."
+else
+  echo "✔ No stale snapshots found."
+fi
+
+########################################
+# 12) Rotate old nightly-clean logs
+########################################
+echo "▶ Rotating old nightly-clean logs..."
+find /tmp -name "nightly-clean-*.log" -mtime +7 -delete 2>/dev/null || true
+echo "✔ Old logs removed (keeping last 7 days)."
+
+########################################
+# 13) Flush kernel/network caches
+########################################
+echo "▶ Resetting network service order and flushing routes..."
+route -n flush 2>/dev/null || true
+echo "✔ Routing table flushed."
+
+########################################
+# Done — restart
+########################################
+echo ""
+echo "========================================="
+echo "nightly-clean complete — $(date)"
+echo "Restarting in 10 seconds..."
+echo "========================================="
+
+sleep 10
+shutdown -r now
