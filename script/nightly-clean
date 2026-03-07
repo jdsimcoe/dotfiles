@@ -9,6 +9,10 @@
 
 set -euo pipefail
 
+# When running as a LaunchDaemon (root), HOME defaults to /var/root.
+# Hardcode the target user's home so cache paths resolve correctly.
+export HOME="/Users/jdsimcoe"
+
 LOG="/tmp/nightly-clean-$(date +%Y%m%d).log"
 exec > >(tee -a "$LOG") 2>&1
 
