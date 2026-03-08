@@ -29,6 +29,12 @@ Example:
 ./script/setup --skip-macos
 ```
 
+Validate that your managed files are still symlinked back to the repo:
+
+```bash
+./script/doctor
+```
+
 #### Local secrets
 
 Keep machine-only secrets out of the repo in `~/.zshrc.local`.
@@ -42,3 +48,15 @@ Run the cleanup script manually when needed:
 ```bash
 ./script/clean
 ```
+
+Bluetooth helpers:
+
+```bash
+./script/bt-reset
+./script/bt-watch 120
+./script/bt-snapshot
+```
+
+- `bt-reset` cycles Bluetooth power with `blueutil` installed by `brew.sh`, otherwise restarts `bluetoothd`
+- `bt-watch` streams `bluetoothd` and sleep/wake-related logs for a short window
+- `bt-snapshot` saves a support bundle with Bluetooth state, recent `bluetoothd` logs, and recent sleep/wake history

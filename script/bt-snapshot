@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+OUT_DIR="${1:-$HOME/Desktop/bt-snapshots}"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$OUT_DIR"
+
+OUT_FILE="${OUT_DIR}/bt-snapshot-${STAMP}.txt"
+
+{
+  echo "# bt-snapshot ${STAMP}"
+  echo
+  echo "## pmset -g log (tail)"
+  pmset -g log | tail -n 200 || true
+  echo
+  echo "## system_profiler SPBluetoothDataType"
+  system_profiler SPBluetoothDataType || true
+  echo
+  echo "## bluetoothd logs (last 10m)"
+  log show --last 10m --style compact --info --predicate 'process == "bluetoothd" OR eventMessage CONTAINS[c] "Bluetooth" OR eventMessage CONTAINS[c] "bluetooth" OR eventMessage CONTAINS[c] "IOBluetooth"' || true
+} >"$OUT_FILE"
+
+echo "bt-snapshot: wrote ${OUT_FILE}"

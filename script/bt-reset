@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BLUEUTIL="${BLUEUTIL:-/opt/homebrew/bin/blueutil}"
+WAIT_SECONDS="${BT_RESET_WAIT_SECONDS:-2}"
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "bt-reset: macOS only" >&2
+  exit 1
+fi
+
+if [[ -x "$BLUEUTIL" ]]; then
+  echo "bt-reset: cycling Bluetooth power via blueutil"
+  "$BLUEUTIL" --power 0
+  sleep "$WAIT_SECONDS"
+  "$BLUEUTIL" --power 1
+  exit 0
+fi
+
+echo "bt-reset: blueutil not found, restarting bluetoothd"
+if pkill -HUP bluetoothd 2>/dev/null; then
+  echo "bt-reset: sent HUP to bluetoothd"
+else
+  killall bluetoothd 2>/dev/null || true
+  echo "bt-reset: killed bluetoothd, launchd should respawn it"
+fi

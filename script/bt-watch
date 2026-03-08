@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+DURATION="${1:-120}"
+
+if [[ ! "$DURATION" =~ ^[0-9]+$ ]]; then
+  echo "usage: bt-watch [seconds]" >&2
+  exit 1
+fi
+
+if [[ "$(uname)" != "Darwin" ]]; then
+  echo "bt-watch: macOS only" >&2
+  exit 1
+fi
+
+echo "bt-watch: streaming bluetoothd and power logs for ${DURATION}s"
+echo "bt-watch: press Ctrl-C to stop early"
+
+timeout_cmd=()
+if command -v gtimeout >/dev/null 2>&1; then
+  timeout_cmd=(gtimeout "$DURATION")
+elif command -v timeout >/dev/null 2>&1; then
+  timeout_cmd=(timeout "$DURATION")
+fi
+
+predicate='process == "bluetoothd" OR eventMessage CONTAINS[c] "Bluetooth" OR eventMessage CONTAINS[c] "bluetooth" OR eventMessage CONTAINS[c] "IOBluetooth" OR process == "powerd"'
+
+if [[ ${#timeout_cmd[@]} -gt 0 ]]; then
+  "${timeout_cmd[@]}" log stream --style compact --info --predicate "$predicate"
+else
+  log stream --style compact --info --predicate "$predicate"
+fi

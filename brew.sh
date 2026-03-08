@@ -29,6 +29,7 @@ TAPS=(
 )
 
 FORMULAE=(
+  "blueutil"
   "cabal-install"
   "dezoomify-rs"
   "direnv"

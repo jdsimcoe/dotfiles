@@ -12,6 +12,8 @@ set -euo pipefail
 # When running as a LaunchDaemon (root), HOME defaults to /var/root.
 # Hardcode the target user's home so cache paths resolve correctly.
 export HOME="/Users/jdsimcoe"
+export BLUEUTIL_ALLOW_ROOT=1
+BT_RESET_SCRIPT="${HOME}/Developer/dotfiles/script/bt-reset"
 
 LOG="/tmp/nightly-clean-$(date +%Y%m%d).log"
 exec > >(tee -a "$LOG") 2>&1
@@ -29,12 +31,11 @@ fi
 # 1) Bluetooth service reset
 ########################################
 echo "▶ Resetting Bluetooth service..."
-if pkill -HUP bluetoothd 2>/dev/null; then
-  echo "✔ Bluetooth daemon restarted (HUP signal sent)."
+if [[ -x "${BT_RESET_SCRIPT}" ]]; then
+  "${BT_RESET_SCRIPT}" || echo "⚠ bt-reset returned non-zero; continuing anyway."
+  echo "✔ Bluetooth reset completed."
 else
-  # Fallback: full kill (launchd will respawn it)
-  killall bluetoothd 2>/dev/null || true
-  echo "✔ Bluetooth daemon killed (launchd will respawn)."
+  echo "⚠ bt-reset script not found at ${BT_RESET_SCRIPT}; skipping Bluetooth reset."
 fi
 
 ########################################

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+STATUS=0
+
+check_link() {
+  local source="$1"
+  local target="$2"
+
+  if [[ -L "$target" ]]; then
+    local current
+    current="$(readlink "$target")"
+    if [[ "$current" == "$source" ]]; then
+      printf 'ok    %s -> %s\n' "$target" "$source"
+      return
+    fi
+
+    printf 'mismatch %s -> %s (expected %s)\n' "$target" "$current" "$source"
+    STATUS=1
+    return
+  fi
+
+  if [[ -e "$target" ]]; then
+    printf 'copy  %s exists but is not symlinked to %s\n' "$target" "$source"
+    STATUS=1
+    return
+  fi
+
+  printf 'miss  %s is missing (expected link to %s)\n' "$target" "$source"
+  STATUS=1
+}
+
+check_link "$REPO_ROOT/.zshrc" "$HOME/.zshrc"
+check_link "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
+check_link "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+check_link "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
+check_link "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
+check_link "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
+
+exit "$STATUS"
