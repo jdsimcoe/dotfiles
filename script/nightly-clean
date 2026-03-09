@@ -14,6 +14,9 @@ set -euo pipefail
 export HOME="/Users/jdsimcoe"
 export BLUEUTIL_ALLOW_ROOT=1
 BT_RESET_SCRIPT="${HOME}/Developer/dotfiles/script/bt-reset"
+PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+KANDJI_BIN="/usr/local/bin/kandji"
+SOFTWAREUPDATE_BIN="/usr/sbin/softwareupdate"
 
 LOG="/tmp/nightly-clean-$(date +%Y%m%d).log"
 exec > >(tee -a "$LOG") 2>&1
@@ -149,6 +152,47 @@ echo "✔ Old logs removed (keeping last 7 days)."
 echo "▶ Resetting network service order and flushing routes..."
 route -n flush 2>/dev/null || true
 echo "✔ Routing table flushed."
+
+########################################
+# 14) Managed app + macOS updates
+########################################
+echo "▶ Running Kandji and macOS updates..."
+set +e
+
+if [[ -x "${KANDJI_BIN}" ]]; then
+  echo "  • Kandji: refreshing MDM state..."
+  "${KANDJI_BIN}" update-mdm || echo "⚠ Kandji update-mdm returned non-zero."
+
+  echo "  • Kandji: checking library items..."
+  "${KANDJI_BIN}" library || echo "⚠ Kandji library returned non-zero."
+
+  echo "  • Kandji: refreshing installed app inventory..."
+  "${KANDJI_BIN}" collect-apps || echo "⚠ Kandji collect-apps returned non-zero."
+else
+  echo "⚠ Kandji CLI not found at ${KANDJI_BIN}; skipping Kandji update pass."
+fi
+
+if [[ -x "${SOFTWAREUPDATE_BIN}" ]]; then
+  echo "  • macOS: forcing update scan..."
+  "${SOFTWAREUPDATE_BIN}" --background --force || echo "⚠ softwareupdate background scan returned non-zero."
+
+  echo "  • macOS: listing available updates..."
+  AVAILABLE_UPDATES="$("${SOFTWAREUPDATE_BIN}" --list 2>&1 || true)"
+  echo "${AVAILABLE_UPDATES}"
+
+  if echo "${AVAILABLE_UPDATES}" | grep -Eq '^\s*\*'; then
+    echo "  • macOS: installing all available updates..."
+    "${SOFTWAREUPDATE_BIN}" --install --all --agree-to-license || \
+      echo "⚠ softwareupdate install returned non-zero (owner auth may be required on Apple Silicon)."
+  else
+    echo "  • macOS: no available updates."
+  fi
+else
+  echo "⚠ softwareupdate binary not found at ${SOFTWAREUPDATE_BIN}; skipping Apple updates."
+fi
+
+set -e
+echo "✔ Managed update pass completed."
 
 ########################################
 # Done — restart
