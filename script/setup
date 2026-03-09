@@ -66,7 +66,9 @@ link_path() {
 log "Repo: $REPO_ROOT"
 
 # Shell config
+link_path "$REPO_ROOT/.hushlogin" "$HOME/.hushlogin"
 link_path "$REPO_ROOT/.zshrc" "$HOME/.zshrc"
+link_path "$REPO_ROOT/.config/starship.toml" "$HOME/.config/starship.toml"
 
 # Neovim (LazyVim-based config)
 link_path "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
