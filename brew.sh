@@ -45,6 +45,7 @@ FORMULAE=(
   "smudge/smudge/nightlight"
   "starship"
   "vercel-cli"
+  "webp"
   "yt-dlp"
 )
 

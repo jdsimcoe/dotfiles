@@ -93,6 +93,37 @@ function iconstyle
     killall Finder
 end
 
+function webp
+    if test (count $argv) -ne 1
+        echo "usage: webp <directory>" >&2
+        return 1
+    end
+
+    set -l target_dir $argv[1]
+    if not test -d "$target_dir"
+        echo "webp: not a directory: $target_dir" >&2
+        return 1
+    end
+
+    if not command -q cwebp
+        echo "webp: cwebp not found" >&2
+        return 1
+    end
+
+    for image in "$target_dir"/*
+        if not test -f "$image"
+            continue
+        end
+
+        set -l extension (string lower -- (path extension "$image"))
+        switch "$extension"
+            case .jpg .jpeg .png .tif .tiff .bmp
+                set -l output (path change-extension webp "$image")
+                cwebp "$image" -o "$output"
+        end
+    end
+end
+
 function remove-sentinel
     sudo launchctl remove com.sentinelone.sentineld-helper
     sudo launchctl remove com.sentinelone.sentineld-updater
