@@ -1,11 +1,10 @@
 # Ghostty
-auto-update-channel = tip
-#theme = Paraiso Dark
+auto-update-channel = stable
 theme = Atom
 
 # Term
 term = xterm-ghostty
-title = Ghostty 
+title = Ghostty
 
 # fonts
 font-family = "Monaspace Xenon"

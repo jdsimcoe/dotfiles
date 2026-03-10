@@ -4,7 +4,7 @@ Personal machine setup split into:
 
 - `brew.sh` for Homebrew taps/formulae/casks
 - `.macos` for macOS system defaults/preferences
-- separate config files/directories (`.hushlogin`, `.zshrc`, `.config/starship.toml`, `.config/nvim`, `.config/ghostty/config`, `.config/karabiner/*`, `.config/zed/settings.json`)
+- separate config files/directories (`.hushlogin`, `.config/fish/config.fish`, `.config/starship.toml`, `.config/nvim`, `.config/ghostty/config`, `.config/karabiner/*`, `.config/zed/settings.json`)
 - `script/setup` as the master bootstrap script for new machines
 - `script/clean` as an optional manual maintenance/cleanup script (not run by setup)
 
@@ -19,7 +19,8 @@ chmod +x script/setup
 This will:
 
 - back up existing files into `~/.dotfiles-backups/<timestamp>/`
-- symlink repo files into place (`.hushlogin`, `.zshrc`, Starship, Neovim, Ghostty, Karabiner, Zed settings)
+- symlink repo files into place (`.hushlogin`, fish config, Starship, Neovim, Ghostty, Karabiner, Zed settings)
+- add `/opt/homebrew/bin/fish` to `/etc/shells` when needed and switch your login shell to fish
 - run `brew.sh` (unless you pass `--skip-brew`)
 - run `.macos` (unless you pass `--skip-macos`)
 
@@ -37,9 +38,8 @@ Validate that your managed files are still symlinked back to the repo:
 
 #### Local secrets
 
-Keep machine-only secrets out of the repo in `~/.zshrc.local`.
-
-See `.zshrc.local.example` for placeholders.
+Keep machine-only fish overrides in `~/.config/fish/config.local.fish`.
+See [`.config/fish/config.local.fish.example`](/Users/jdsimcoe/Developer/dotfiles/.config/fish/config.local.fish.example) for placeholders.
 
 #### Optional maintenance
 

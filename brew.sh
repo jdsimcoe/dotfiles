@@ -36,6 +36,7 @@ FORMULAE=(
   "fd"
   "ffmpeg"
   "fftw"
+  "fish"
   "gh"
   "ghc"
   "imagemagick"

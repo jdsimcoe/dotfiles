@@ -63,11 +63,40 @@ link_path() {
   fi
 }
 
+ensure_dir() {
+  mkdir -p "$1"
+}
+
+set_default_shell_to_fish() {
+  local fish_path="/opt/homebrew/bin/fish"
+
+  if [[ ! -x "$fish_path" ]]; then
+    log "skip  default shell (fish not installed)"
+    return
+  fi
+
+  if ! grep -qx "$fish_path" /etc/shells 2>/dev/null; then
+    printf '%s\n' "$fish_path" | sudo tee -a /etc/shells >/dev/null
+    log "shells add $fish_path"
+  fi
+
+  local current_shell
+  current_shell="$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')"
+  if [[ "$current_shell" == "$fish_path" ]]; then
+    log "skip  default shell (already $fish_path)"
+    return
+  fi
+
+  chsh -s "$fish_path"
+  log "shell $fish_path"
+}
+
 log "Repo: $REPO_ROOT"
 
 # Shell config
 link_path "$REPO_ROOT/.hushlogin" "$HOME/.hushlogin"
-link_path "$REPO_ROOT/.zshrc" "$HOME/.zshrc"
+ensure_dir "$HOME/.config/fish"
+link_path "$REPO_ROOT/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
 link_path "$REPO_ROOT/.config/starship.toml" "$HOME/.config/starship.toml"
 
 # Neovim (LazyVim-based config)
@@ -87,11 +116,13 @@ if [[ $RUN_BREW -eq 1 ]]; then
   if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/brew.sh" ]]; then
     log "run   $REPO_ROOT/brew.sh"
     bash "$REPO_ROOT/brew.sh"
+    set_default_shell_to_fish
   else
     log "skip  brew.sh (not macOS or file missing)"
   fi
 else
   log "skip  brew.sh (--skip-brew)"
+  set_default_shell_to_fish
 fi
 
 if [[ $RUN_MACOS -eq 1 ]]; then
