@@ -6,7 +6,7 @@
 # What this does:
 #   1. Symlinks the script to /usr/local/bin/nightly-clean
 #   2. Installs the launchd plist into ~/Library/LaunchDaemons
-#   3. Configures pmset to wake the machine at 23:58 every night
+#   3. Configures pmset to wake the machine at 23:58 every Friday
 #   4. Prints the sudoers line you need to add manually
 #
 # Author: Jonathan Simcoe
@@ -44,17 +44,18 @@ sudo chmod 644 "${PLIST_DEST}"
 sudo /usr/libexec/PlistBuddy -c "Delete :UserName" "${PLIST_DEST}" 2>/dev/null || true
 sudo /usr/libexec/PlistBuddy -c "Add :UserName string jdsimcoe" "${PLIST_DEST}"
 
-sudo launchctl bootout system /com.jdsimcoe.nightly-clean 2>/dev/null || true
+sudo launchctl bootout "system/com.jdsimcoe.nightly-clean" 2>/dev/null || true
+sudo launchctl bootout system "${PLIST_DEST}" 2>/dev/null || true
 sudo launchctl bootstrap system "${PLIST_DEST}"
 echo -e "${GREEN}✔ LaunchDaemon installed and loaded.${NC}"
 echo ""
 
 # ── 3. Schedule wake-from-sleep ─────────────────────────
-echo -e "${YELLOW}3) Scheduling nightly wake at 23:58${NC}"
+echo -e "${YELLOW}3) Scheduling weekly wake for Friday 23:58${NC}"
 # Cancel any existing repeating wake schedule first
 sudo pmset repeat cancel 2>/dev/null || true
-sudo pmset repeat wakeorpoweron MTWRFSU 23:58:00
-echo -e "${GREEN}✔ pmset wake schedule set. Machine will wake at 23:58 nightly.${NC}"
+sudo pmset repeat wakeorpoweron F 23:58:00
+echo -e "${GREEN}✔ pmset wake schedule set. Machine will wake on Friday at 23:58.${NC}"
 echo ""
 
 # ── 4. Sudoers reminder ────────────────────────────────
@@ -85,7 +86,7 @@ echo "  Plist:     $(ls -la ${PLIST_DEST})"
 echo "  pmset:     $(pmset -g sched 2>/dev/null | head -5 || echo '(check manually)')"
 echo "  launchctl: $(sudo launchctl list | grep nightly-clean || echo '(not yet visible — will appear at next interval)')"
 echo ""
-echo -e "${GREEN}✔ Setup complete. Your Mac will wake at 23:58 and run nightly-clean at midnight.${NC}"
+echo -e "${GREEN}✔ Setup complete. Your Mac will wake on Friday at 23:58 and run nightly-clean at 00:00 on Saturday.${NC}"
 echo ""
 echo "  To test manually:  sudo /usr/local/bin/nightly-clean"
 echo "  To view logs:      cat /tmp/nightly-clean-\$(date +%Y%m%d).log"

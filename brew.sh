@@ -39,6 +39,7 @@ FORMULAE=(
   "fish"
   "gh"
   "ghc"
+  "corepack"
   "imagemagick"
   "neovim"
   "node"
