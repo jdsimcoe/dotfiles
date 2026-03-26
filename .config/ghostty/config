@@ -9,7 +9,7 @@ title = Ghostty
 # fonts
 font-family = "Monaspace Xenon"
 font-size = 16
-macos-titlebar-style = transparent
+macos-titlebar-style = tabs
 
 # window stuff
 adjust-cell-height = 6
