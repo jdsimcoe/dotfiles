@@ -244,6 +244,19 @@ defaults write com.apple.Safari WarnAboutFraudulentWebsites -bool true
 defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
 
 ###############################################################################
+# Keyboard Shortcuts                                                          #
+###############################################################################
+
+# Global app shortcuts (All Applications)
+# Delete Conversation… → ⌘+Delete
+# Delete Conversations… → ⌘+Delete
+# Share… → ⌥⇧⌘S
+defaults write -g NSUserKeyEquivalents \
+  "$(printf 'Delete Conversation\u2026')" "@$(printf '\010')" \
+  "$(printf 'Delete Conversations\u2026')" "@$(printf '\010')" \
+  "Share..." "@~\$s"
+
+###############################################################################
 # Mail                                                                        #
 ###############################################################################
 
@@ -254,8 +267,16 @@ defaults write com.apple.mail DisableSendAnimations -bool true
 # Copy email addresses as `foo@example.com` instead of `Foo Bar <foo@example.com>` in Mail.app
 defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
 
-# Add the keyboard shortcut ⌘ + Enter to send an email in Mail.app
-defaults write com.apple.mail NSUserKeyEquivalents -dict-add "Send" "@\U21a9"
+# ⌘+Enter to send and resend in Mail.app (PlistBuddy required due to sandbox)
+osascript -e 'tell application "Mail" to quit' 2>/dev/null || true
+sleep 1
+/usr/libexec/PlistBuddy \
+  -c "Delete :NSUserKeyEquivalents" \
+  -c "Add :NSUserKeyEquivalents dict" \
+  -c "Add :NSUserKeyEquivalents:Send string @$(printf '\r')" \
+  -c "Add :NSUserKeyEquivalents:Send\ Again string @$(printf '\r')" \
+  ~/Library/Containers/com.apple.mail/Data/Library/Preferences/com.apple.mail.plist \
+  2>/dev/null || true
 
 ###############################################################################
 # Kill affected applications                                                  #
