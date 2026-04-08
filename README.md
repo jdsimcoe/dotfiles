@@ -20,6 +20,7 @@ This will:
 
 - back up existing files into `~/.dotfiles-backups/<timestamp>/`
 - symlink repo files into place (`.hushlogin`, `.zprofile`, `.zshrc`, Starship, Neovim, Ghostty, Karabiner, Zed settings)
+- set global Git defaults like `push.autoSetupRemote=true`, `user.email`, and `user.name`
 - switch your login shell to zsh
 - run `brew.sh` (unless you pass `--skip-brew`)
 - run `.macos` (unless you pass `--skip-macos`)

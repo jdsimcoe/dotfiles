@@ -86,6 +86,22 @@ set_default_shell_to_zsh() {
   log "shell $zsh_path"
 }
 
+set_git_config() {
+  local key="$1"
+  local value="$2"
+  local current=""
+
+  if current="$(git config --global --get "$key" 2>/dev/null)"; then
+    if [[ "$current" == "$value" ]]; then
+      log "skip  git $key (already $value)"
+      return
+    fi
+  fi
+
+  git config --global "$key" "$value"
+  log "git   $key=$value"
+}
+
 log "Repo: $REPO_ROOT"
 
 # Shell config
@@ -106,6 +122,11 @@ link_path "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.co
 
 # Zed editor (user settings)
 link_path "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
+
+# Git defaults
+set_git_config "push.autoSetupRemote" "true"
+set_git_config "user.email" "275617+jdsimcoe@users.noreply.github.com"
+set_git_config "user.name" "Jonathan Simcoe"
 
 if [[ $RUN_BREW -eq 1 ]]; then
   if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/brew.sh" ]]; then
