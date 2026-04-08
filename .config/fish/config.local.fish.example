@@ -1,5 +1,0 @@
-# Local machine-only secrets and overrides for fish.
-# Copy any values you need into ~/.config/fish/config.local.fish (outside this repo).
-
-# set -gx ANTHROPIC_API_KEY "..."
-# set -gx AI_GATEWAY_API_KEY "..."

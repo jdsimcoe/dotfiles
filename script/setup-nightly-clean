@@ -5,7 +5,7 @@
 #
 # What this does:
 #   1. Symlinks the script to /usr/local/bin/nightly-clean
-#   2. Installs the launchd plist into ~/Library/LaunchDaemons
+#   2. Installs the launchd plist into /Library/LaunchDaemons
 #   3. Configures pmset to wake the machine at 23:58 every Friday
 #   4. Prints the sudoers line you need to add manually
 #
@@ -39,10 +39,10 @@ sudo cp "${PLIST_SRC}" "${PLIST_DEST}"
 sudo chown root:wheel "${PLIST_DEST}"
 sudo chmod 644 "${PLIST_DEST}"
 
-# Update the plist to run as root (since it's a LaunchDaemon now)
-# We need to add a UserName key so the user-level caches are found
+# Ensure the LaunchDaemon runs as root.
+# Do not set UserName here: that would force the job to run as the login user
+# and break root-only steps like Kandji, softwareupdate background scans, and reboot.
 sudo /usr/libexec/PlistBuddy -c "Delete :UserName" "${PLIST_DEST}" 2>/dev/null || true
-sudo /usr/libexec/PlistBuddy -c "Add :UserName string jdsimcoe" "${PLIST_DEST}"
 
 sudo launchctl bootout "system/com.jdsimcoe.nightly-clean" 2>/dev/null || true
 sudo launchctl bootout system "${PLIST_DEST}" 2>/dev/null || true

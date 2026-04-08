@@ -1,0 +1,5 @@
+# Local machine-only secrets and overrides for zsh.
+# Copy any values you need into ~/.zshrc.local (outside this repo).
+
+# export ANTHROPIC_API_KEY="..."
+# export AI_GATEWAY_API_KEY="..."

@@ -5,6 +5,7 @@ theme = Atom
 # Term
 term = xterm-ghostty
 title = Ghostty
+command = /bin/zsh -l
 
 # fonts
 font-family = "Monaspace Xenon"

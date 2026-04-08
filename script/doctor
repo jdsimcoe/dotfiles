@@ -33,7 +33,8 @@ check_link() {
 }
 
 check_link "$REPO_ROOT/.hushlogin" "$HOME/.hushlogin"
-check_link "$REPO_ROOT/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
+check_link "$REPO_ROOT/.zprofile" "$HOME/.zprofile"
+check_link "$REPO_ROOT/.zshrc" "$HOME/.zshrc"
 check_link "$REPO_ROOT/.config/starship.toml" "$HOME/.config/starship.toml"
 check_link "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
 check_link "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
