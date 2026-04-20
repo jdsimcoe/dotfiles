@@ -1,16 +1,24 @@
 return {
-  -- Atom colorscheme
+  -- Atom colorscheme (kept available as :colorscheme atom)
   {
-    url = "git@github.com:jdsimcoe/atom-nvim.git",
+    "jdsimcoe/atom-nvim",
     lazy = false,
     priority = 1000,
   },
 
-  -- Tell LazyVim to use it
+  -- Flexoki colorscheme (Steph Ango's inky palette)
+  {
+    "kepano/flexoki-neovim",
+    name = "flexoki",
+    lazy = false,
+    priority = 1000,
+  },
+
+  -- Tell LazyVim which colorscheme to load at startup
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "atom",
+      colorscheme = "flexoki-dark",
     },
   },
 }

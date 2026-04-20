@@ -1,5 +1,5 @@
 "$schema" = 'https://starship.rs/config-schema.json'
-format = "$directory$git_branch$git_status"
+format = "$directory$custom$git_branch$git_status"
 add_newline = false
 
 [aws]
@@ -33,13 +33,20 @@ symbol = " "
 symbol = " "
 
 [directory]
-format = "[ $path ]($style)[$read_only]($read_only_style)[](fg:#a78bfa bg:#2b2d3a)"
-style = "fg:#111827 bg:#a78bfa bold"
+format = "[ $path ]($style)[$read_only]($read_only_style)"
+style = "fg:black bg:bright-purple bold"
 truncation_length = 3
 truncate_to_repo = true
 home_symbol = "~"
 read_only = " 󰌾 "
-read_only_style = "fg:#111827 bg:#a78bfa bold"
+read_only_style = "fg:black bg:bright-purple bold"
+
+[custom.end_cap]
+description = "Purple caret after $directory when not in a git repo"
+when = "! git rev-parse --is-inside-work-tree 2>/dev/null"
+command = "true"
+format = "[]($style)"
+style = "fg:bright-purple"
 
 [docker_context]
 symbol = " "
@@ -63,16 +70,16 @@ symbol = " "
 symbol = " "
 
 [git_branch]
-format = "[  $branch ]($style)"
+format = "[](fg:bright-purple bg:bright-black)[  $branch ]($style)"
 symbol = ""
-style = "fg:#ede9fe bg:#2b2d3a bold"
+style = "fg:bright-white bg:bright-black bold"
 
 [git_commit]
 tag_symbol = '  '
 
 [git_status]
-format = '[ $all_status$ahead_behind ]($style)[](fg:#2b2d3a)'
-style = "fg:#ede9fe bg:#2b2d3a bold"
+format = '[ $all_status$ahead_behind ]($style)[](fg:bright-black)'
+style = "fg:bright-white bg:bright-black bold"
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇕"

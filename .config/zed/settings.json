@@ -1,18 +1,23 @@
 {
+  "icon_theme": {
+    "mode": "dark",
+    "light": "Zed (Default)",
+    "dark": "Zed (Default)"
+  },
   "project_panel": {
-    "dock": "left"
+    "dock": "right"
   },
   "outline_panel": {
-    "dock": "left"
+    "dock": "right"
   },
   "collaboration_panel": {
-    "dock": "left"
+    "dock": "right"
   },
   "git_panel": {
-    "dock": "left"
+    "dock": "right"
   },
   "agent": {
-    "dock": "right",
+    "dock": "left",
     "default_model": {
       "provider": "anthropic",
       "model": "claude-opus-4-6-latest",
@@ -53,6 +58,6 @@
   "theme": {
     "mode": "dark",
     "light": "Zed Legacy: Atelier Cave Light",
-    "dark": "Atom Dark",
+    "dark": "Flexoki Dark",
   },
 }

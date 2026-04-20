@@ -152,4 +152,14 @@ else
   log "skip  .macos (--skip-macos)"
 fi
 
+# Neovim plugin sync (LazyVim).
+# Runs Lazy in headless mode so plugins like flexoki-neovim are installed
+# immediately rather than on next interactive nvim launch.
+if command -v nvim >/dev/null 2>&1; then
+  log "run   nvim --headless +Lazy! sync"
+  nvim --headless "+Lazy! sync" +qa 2>/dev/null || log "warn  nvim Lazy sync exited non-zero (safe to ignore on first run)"
+else
+  log "skip  nvim plugin sync (nvim not installed yet)"
+fi
+
 log "Done."

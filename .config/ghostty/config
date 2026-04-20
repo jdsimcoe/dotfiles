@@ -1,6 +1,6 @@
 # Ghostty
 auto-update-channel = stable
-theme = Atom
+theme = Flexoki Dark
 
 # Term
 term = xterm-ghostty
