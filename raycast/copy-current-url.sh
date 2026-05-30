@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/zsh
 
 # @raycast.schemaVersion 1
-# @raycast.title Copy URL
+# @raycast.title Copy current URL
 # @raycast.mode silent
 # @raycast.author Jonathan Simcoe
 # @raycast.authorURL https://jdsimcoe.com
@@ -9,6 +9,8 @@
 # @raycast.packageName Safari
 
 set -euo pipefail
+export LC_ALL=C
+export LANG=C
 
 url="$(
   osascript <<'APPLESCRIPT'

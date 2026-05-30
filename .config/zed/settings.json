@@ -1,47 +1,44 @@
 {
+  "cli_default_open_behavior": "existing_window",
+  "proxy": "",
   "icon_theme": {
     "mode": "dark",
     "light": "Zed (Default)",
-    "dark": "Zed (Default)"
+    "dark": "Zed (Default)",
   },
   "project_panel": {
-    "dock": "right"
+    "dock": "right",
   },
   "outline_panel": {
-    "dock": "right"
+    "dock": "right",
   },
   "collaboration_panel": {
-    "dock": "right"
+    "dock": "right",
   },
   "git_panel": {
-    "dock": "right"
+    "dock": "right",
   },
   "agent": {
-    "dock": "left",
     "default_model": {
-      "provider": "anthropic",
-      "model": "claude-opus-4-6-latest",
+      "provider": "openai",
+      "model": "gpt-5.5-pro",
       "enable_thinking": true,
-      "effort": "high",
+      "effort": "medium"
     },
+    "dock": "left",
     "favorite_models": [],
     "model_parameters": [],
   },
-  "context_servers": {
-    "claude-code": {
-      "command": "claude",
-      "args": ["mcp", "serve"],
-    },
-  },
   "buffer_font_family": "Monaspace Xenon",
   "agent_servers": {
-    "codex-acp": {
+    "cursor": {
       "type": "registry"
     },
     "claude-acp": {
+      "type": "registry"
+    },
+    "codex-acp": {
       "type": "registry",
-      "default_model": "opus",
-      "favorite_models": ["opus"],
     },
   },
   "telemetry": {
