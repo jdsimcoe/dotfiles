@@ -19,6 +19,10 @@ alias yarnclean="rm -rf node_modules/ package-lock.json && yarn"
 alias src="source $HOME/.zshrc"
 alias cursor='open -b com.todesktop.230313mzl4w4u92'
 
+bluelog() {
+  sudo log show --predicate 'subsystem == "com.apple.bluetooth"' --last 30m > "$HOME/bt_drop.log"
+}
+
 alias gd="git diff"
 alias gs="git status 2>/dev/null"
 alias ga="git add . && git add -u"
@@ -48,6 +52,78 @@ gclone() {
 
 icon() {
   iconutil -c icns "$HOME/Desktop/$1.iconset"
+}
+
+tahoe-icon() {
+  if [[ $# -lt 1 || $# -gt 2 ]]; then
+    echo "usage: tahoe-icon <name[.icon]> [output-name[.icns]]" >&2
+    return 1
+  fi
+
+  local tahoe_dir="${TAHOE_ICON_DIR:-$HOME/Documents/Tahoe}"
+  local input="$1"
+  local source
+
+  if [[ "$input" == */* ]]; then
+    source="$input"
+    [[ "$source" == "~/"* ]] && source="$HOME/${source#~/}"
+  else
+    source="$tahoe_dir/${input%.icon}.icon"
+  fi
+
+  if [[ ! -d "$source" ]]; then
+    echo "tahoe-icon: source not found: $source" >&2
+    return 1
+  fi
+
+  local base="${source:t}"
+  base="${base%.icon}"
+
+  local output_name="${2:-$base}"
+  local output
+  if [[ "$output_name" == */* ]]; then
+    output="$output_name"
+    [[ "$output" == "~/"* ]] && output="$HOME/${output#~/}"
+  else
+    output="$tahoe_dir/${output_name%.icns}.icns"
+  fi
+
+  if ! xcrun -f actool >/dev/null 2>&1; then
+    echo "tahoe-icon: actool not found (install Xcode command line tools)" >&2
+    return 1
+  fi
+
+  mkdir -p "${output:h}"
+
+  local tmp_root
+  tmp_root="$(mktemp -d "${TMPDIR:-/tmp}/tahoe-icon.XXXXXX")" || return 1
+  local compiled_icns="$tmp_root/$base.icns"
+  local partial_plist="$tmp_root/partial.plist"
+  local actool_output="$tmp_root/actool-output.plist"
+
+  xcrun actool \
+    --compile "$tmp_root" \
+    --platform macosx \
+    --minimum-deployment-target 10.12 \
+    --app-icon "$base" \
+    --standalone-icon-behavior all \
+    --output-partial-info-plist "$partial_plist" \
+    "$source" >"$actool_output" || {
+      cat "$actool_output" >&2
+      rm -rf "$tmp_root"
+      return 1
+    }
+
+  if [[ ! -f "$compiled_icns" ]]; then
+    echo "tahoe-icon: actool did not produce $compiled_icns" >&2
+    cat "$actool_output" >&2
+    rm -rf "$tmp_root"
+    return 1
+  fi
+
+  mv "$compiled_icns" "$output"
+  rm -rf "$tmp_root"
+  echo "wrote $output"
 }
 
 iconstyle() {
@@ -144,3 +220,6 @@ eval "$(/Users/jdsimcoe/.local/bin/mise activate zsh)"
 # >>> grok installer >>>
 export PATH="$HOME/.grok/bin:$PATH"
 # <<< grok installer <<<
+
+# Hermes Agent — ensure ~/.local/bin is on PATH
+export PATH="$HOME/.local/bin:$PATH"
