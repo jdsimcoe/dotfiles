@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# nightly-clean — Lightweight unattended macOS maintenance
-# Designed to run via launchd at midnight. No prompts, no browser caches.
-# Resets bluetooth, flushes DNS, prunes system caches, restarts the machine.
+# nightly-clean — Unattended weekly macOS maintenance
+# Designed to run via launchd at midnight. No prompts.
+# Resets Bluetooth, runs Mole cleanup/optimization, flushes DNS, prunes
+# remaining targeted caches, and restarts the machine.
 #
 # Author: Jonathan Simcoe
 # See also: script/clean (interactive, full version)
@@ -11,12 +12,18 @@ set -euo pipefail
 
 # When running as a LaunchDaemon (root), HOME defaults to /var/root.
 # Hardcode the target user's home so cache paths resolve correctly.
-export HOME="/Users/jdsimcoe"
+TARGET_USER="jdsimcoe"
+TARGET_GROUP="staff"
+export HOME="/Users/${TARGET_USER}"
+export USER="${TARGET_USER}"
+export LOGNAME="${TARGET_USER}"
+export SUDO_USER="${TARGET_USER}"
 export BLUEUTIL_ALLOW_ROOT=1
 BT_RESET_SCRIPT="${HOME}/Developer/dotfiles/script/bt-reset"
 PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 KANDJI_BIN="/usr/local/bin/kandji"
 SOFTWAREUPDATE_BIN="/usr/sbin/softwareupdate"
+MOLE_BIN=""
 
 LOG="/tmp/nightly-clean-$(date +%Y%m%d).log"
 exec > >(tee -a "$LOG") 2>&1
@@ -29,6 +36,58 @@ if [[ "$(uname)" != "Darwin" ]]; then
   echo "ERROR: This script is for macOS only."
   exit 1
 fi
+
+find_mole_bin() {
+  local candidate
+  for candidate in /opt/homebrew/bin/mo /usr/local/bin/mo; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  command -v mo 2>/dev/null || true
+}
+
+repair_mole_state_ownership() {
+  local path
+  for path in \
+    "${HOME}/.cache/mole" \
+    "${HOME}/.config/mole" \
+    "${HOME}/Library/Logs/mole"; do
+    if [[ -e "$path" ]]; then
+      chown -R "${TARGET_USER}:${TARGET_GROUP}" "$path" 2>/dev/null || true
+    fi
+  done
+}
+
+run_mole_command() {
+  local command_name="$1"
+  shift || true
+
+  if [[ -z "${MOLE_BIN}" ]]; then
+    echo "⚠ Mole CLI not found; skipping mo ${command_name}."
+    return 0
+  fi
+
+  echo "  • Mole: mo ${command_name} $*"
+  if env \
+    HOME="${HOME}" \
+    USER="${TARGET_USER}" \
+    LOGNAME="${TARGET_USER}" \
+    SUDO_USER="${TARGET_USER}" \
+    NO_COLOR=1 \
+    TERM=dumb \
+    "${MOLE_BIN}" "${command_name}" "$@"; then
+    echo "  ✔ Mole ${command_name} completed."
+  else
+    echo "⚠ Mole ${command_name} returned non-zero; continuing anyway."
+  fi
+
+  repair_mole_state_ownership
+}
+
+MOLE_BIN="$(find_mole_bin)"
 
 ########################################
 # 1) Bluetooth service reset
@@ -50,7 +109,19 @@ killall -HUP mDNSResponder 2>/dev/null || true
 echo "✔ DNS cache flushed."
 
 ########################################
-# 3) System logs (truncate bloated logs, remove old archives)
+# 3) Mole deep cleanup and optimization
+#
+# The launchd job runs as root, so Mole can perform sudo-gated portions without
+# prompting. Keep HOME/USER pointed at the target account so user caches and
+# Mole's operation log resolve to /Users/jdsimcoe, then repair ownership after.
+########################################
+echo "▶ Running Mole cleanup and optimization..."
+run_mole_command clean
+run_mole_command optimize
+echo "✔ Mole pass completed."
+
+########################################
+# 4) System logs (truncate bloated logs, remove old archives)
 ########################################
 echo "▶ Pruning system logs..."
 find /var/log -type f -name "*.log" -size +50M -exec truncate -s 0 {} \; 2>/dev/null || true
@@ -58,7 +129,7 @@ find /var/log -type f -name "*.gz" -mtime +14 -delete 2>/dev/null || true
 echo "✔ System logs pruned."
 
 ########################################
-# 4) User-level cache pruning
+# 5) User-level cache pruning
 #    (Skip browser caches — only prune general app caches)
 ########################################
 echo "▶ Pruning user caches (excluding browsers)..."
@@ -77,7 +148,7 @@ find "${USER_CACHE}" \
 echo "✔ User caches pruned (browsers untouched)."
 
 ########################################
-# 5) QuickLook cache
+# 6) QuickLook cache
 ########################################
 echo "▶ Clearing QuickLook cache..."
 qlmanage -r cache 2>/dev/null || true
@@ -86,14 +157,14 @@ rm -rf "${HOME}/Library/Caches/com.apple.QuickLookThumbnailsAgent" 2>/dev/null |
 echo "✔ QuickLook cache cleared."
 
 ########################################
-# 6) Font caches
+# 7) Font caches
 ########################################
 echo "▶ Clearing font caches..."
 atsutil databases -remove 2>/dev/null || true
 echo "✔ Font caches cleared."
 
 ########################################
-# 7) Crash reports older than 30 days
+# 8) Crash reports older than 30 days
 ########################################
 echo "▶ Removing old crash reports..."
 find "${HOME}/Library/Logs/DiagnosticReports" -type f -mtime +30 -delete 2>/dev/null || true
@@ -101,7 +172,7 @@ find /Library/Logs/DiagnosticReports -type f -mtime +30 -delete 2>/dev/null || t
 echo "✔ Old crash reports removed."
 
 ########################################
-# 8) Container cache pruning
+# 9) Container cache pruning
 ########################################
 echo "▶ Pruning container caches..."
 CONTAINERS_DIR="${HOME}/Library/Containers"
@@ -110,21 +181,21 @@ find "${CONTAINERS_DIR}" -path "*/Data/Library/Logs/*" -type f -mtime +30 -size 
 echo "✔ Container caches pruned."
 
 ########################################
-# 9) BSD periodic maintenance
+# 10) BSD periodic maintenance
 ########################################
 echo "▶ Running periodic maintenance scripts..."
 periodic daily weekly monthly 2>/dev/null || true
 echo "✔ Periodic maintenance completed."
 
 ########################################
-# 10) Purge inactive memory
+# 11) Purge inactive memory
 ########################################
 echo "▶ Purging inactive memory..."
 purge 2>/dev/null || true
 echo "✔ Memory purged."
 
 ########################################
-# 11) Flush APFS snapshot metadata
+# 12) Flush APFS snapshot metadata
 ########################################
 echo "▶ Cleaning stale APFS snapshots..."
 SNAPSHOTS=$(tmutil listlocalsnapshotdates / 2>/dev/null | tail -n +2 || true)
@@ -140,21 +211,21 @@ else
 fi
 
 ########################################
-# 12) Rotate old nightly-clean logs
+# 13) Rotate old nightly-clean logs
 ########################################
 echo "▶ Rotating old nightly-clean logs..."
 find /tmp -name "nightly-clean-*.log" -mtime +7 -delete 2>/dev/null || true
 echo "✔ Old logs removed (keeping last 7 days)."
 
 ########################################
-# 13) Flush kernel/network caches
+# 14) Flush kernel/network caches
 ########################################
 echo "▶ Resetting network service order and flushing routes..."
 route -n flush 2>/dev/null || true
 echo "✔ Routing table flushed."
 
 ########################################
-# 14) Managed app + macOS updates
+# 15) Managed app + macOS updates
 ########################################
 echo "▶ Running Kandji and macOS updates..."
 set +e

@@ -221,5 +221,5 @@ eval "$(/Users/jdsimcoe/.local/bin/mise activate zsh)"
 export PATH="$HOME/.grok/bin:$PATH"
 # <<< grok installer <<<
 
-# Hermes Agent — ensure ~/.local/bin is on PATH
+# User-local tools
 export PATH="$HOME/.local/bin:$PATH"

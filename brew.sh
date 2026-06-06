@@ -29,6 +29,7 @@ TAPS=(
 )
 
 FORMULAE=(
+  "bc"
   "blueutil"
   "cabal-install"
   "dezoomify-rs"
@@ -40,6 +41,7 @@ FORMULAE=(
   "ghc"
   "corepack"
   "imagemagick"
+  "mole"
   "neovim"
   "node"
   "smudge/smudge/nightlight"
