@@ -342,7 +342,6 @@ fi
 
 # Added by Actual Computer installer
 export PATH="$HOME/.actual/bin:$PATH"
-eval "$(/Users/jdsimcoe/.local/bin/mise activate zsh)"
 
 # >>> grok installer >>>
 export PATH="$HOME/.grok/bin:$PATH"
