@@ -43,7 +43,7 @@ read_only_style = "fg:black bg:bright-purple bold"
 
 [custom.end_cap]
 description = "Purple caret after $directory when not in a git repo"
-when = "! git rev-parse --is-inside-work-tree 2>/dev/null"
+when = "dir=$PWD; while [ \"$dir\" != / ]; do [ -e \"$dir/.git\" ] && exit 1; parent=${dir%/*}; [ \"$parent\" = \"$dir\" ] && break; dir=$parent; done; exit 0"
 command = "true"
 format = "[]($style)"
 style = "fg:bright-purple"
