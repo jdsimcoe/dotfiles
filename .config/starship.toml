@@ -70,7 +70,7 @@ symbol = " "
 symbol = " "
 
 [git_branch]
-format = "[](fg:bright-purple bg:bright-black)[  $branch ]($style)"
+format = "[](fg:bright-purple bg:bright-black)[ ↳ $branch ]($style)"
 symbol = ""
 style = "fg:bright-white bg:bright-black bold"
 
