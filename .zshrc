@@ -1,5 +1,6 @@
 setopt AUTO_CD
 
+alias amp="cliamp"
 alias lg="lazygit"
 alias ls="ls -Glaph"
 alias ll="ls -Glaph -l"
