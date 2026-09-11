@@ -23,6 +23,7 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 
 TAPS=(
+  "bjarneo/cliamp"
   "agavra/tap"
   "anomalyco/tap"
   "smudge/smudge"
@@ -31,6 +32,7 @@ TAPS=(
 FORMULAE=(
   "bc"
   "blueutil"
+  "bjarneo/cliamp/cliamp"
   "cabal-install"
   "dezoomify-rs"
   "direnv"
@@ -44,6 +46,7 @@ FORMULAE=(
   "mole"
   "neovim"
   "node"
+  "python"
   "smudge/smudge/nightlight"
   "starship"
   "vercel-cli"

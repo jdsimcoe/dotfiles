@@ -1,0 +1,20 @@
+volume = 6
+# Choose a service with Esc; T opens Tidal and Y opens YouTube.
+provider = "ytmusic"
+initial_directory = "~/Music"
+eq_preset = "Flat"
+visualizer = "ANSIbrot"
+sample_rate = 0
+bit_depth = 32
+
+theme = "ANSIgray"
+shuffle = false
+speed = 1.00
+[tidal]
+enabled = true
+quality = "lossless"
+
+# Uses your YouTube Music sign-in in Safari.
+[ytmusic]
+cookies_from = "safari"
+expand_playlist = true

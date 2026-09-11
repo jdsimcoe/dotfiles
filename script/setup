@@ -141,6 +141,9 @@ else
   set_default_shell_to_zsh
 fi
 
+# cliamp settings, visualizers, and terminal-derived grayscale theme.
+python3 "$REPO_ROOT/script/setup-cliamp" --skip-install
+
 if [[ $RUN_MACOS -eq 1 ]]; then
   if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/.macos" ]]; then
     log "run   $REPO_ROOT/.macos"

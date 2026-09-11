@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Install cliamp, restore saved settings and plugins, and configure ANSI colors."""
+
+import argparse
+import datetime
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tomllib
+
+
+def merge_config(original, template):
+    existing = tomllib.loads(original)
+    defaults = tomllib.loads(template)
+    blocks = re.split(r"(?m)(?=^[ \t]*\[)", original)
+
+    def update(block, values, current, force=()):
+        for key, value in values.items():
+            if key in current and key not in force:
+                continue
+            setting = f"{key} = {json.dumps(value)}"
+            pattern = rf"(?m)^[ \t]*{re.escape(key)}[ \t]*=[^\n]*"
+            if re.search(pattern, block):
+                block = re.sub(pattern, lambda _: setting, block)
+            else:
+                if block and not block.endswith("\n"):
+                    block += "\n"
+                block += setting + "\n"
+        return block
+
+    root = {k: v for k, v in defaults.items() if not isinstance(v, dict)}
+    blocks[0] = update(blocks[0], root, existing, ("theme", "visualizer"))
+    for section, values in defaults.items():
+        if not isinstance(values, dict):
+            continue
+        index = next((i for i, block in enumerate(blocks) if re.match(
+            rf"^[ \t]*\[{re.escape(section)}\][ \t]*(?:#.*)?(?:\n|$)", block
+        )), None)
+        if index is None:
+            blocks.append(f"\n[{section}]\n")
+            index = len(blocks) - 1
+        blocks[index] = update(blocks[index], values, existing.get(section, {}))
+    merged = "".join(blocks)
+    tomllib.loads(merged)
+    return merged
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--skip-install", action="store_true", help="configure files without installing packages")
+    args = parser.parse_args()
+    repo = Path(__file__).resolve().parent.parent
+    config_dir = Path(
+        os.environ.get("CLIAMP_CONFIG_DIR")
+        or Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "cliamp"
+    ).expanduser()
+    config_dir.mkdir(parents=True, exist_ok=True)
+    backup_dir = config_dir / "backups" / (
+        "ansi-" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    )
+
+    if not args.skip_install:
+        packages = {"cliamp": "bjarneo/cliamp/cliamp", "ffmpeg": "ffmpeg", "yt-dlp": "yt-dlp"}
+        missing = [formula for command, formula in packages.items() if not shutil.which(command)]
+        if missing:
+            brew = shutil.which("brew")
+            if not brew:
+                raise SystemExit("Install cliamp, ffmpeg, and yt-dlp with your package manager, then re-run.")
+            subprocess.run([brew, "install", *missing], check=True)
+
+    def backup(path):
+        target = backup_dir / path.relative_to(config_dir)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists():
+            shutil.copy2(path, target)
+        elif path.is_symlink():
+            target.symlink_to(os.readlink(path))
+        print(f"backup {path} -> {target}", flush=True)
+
+    for source in sorted((repo / ".config/cliamp/plugins").glob("*.lua")):
+        # The previous name is removed after installing its replacement below.
+        if source.name == "mandelbrot-atom.lua":
+            continue
+        target = config_dir / "plugins" / source.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.is_symlink() and target.resolve() == source:
+            continue
+        if target.exists() or target.is_symlink():
+            backup(target)
+            target.unlink()
+        target.symlink_to(source)
+        print(f"link {target} -> {source}", flush=True)
+
+    for relative in ("plugins/mandelbrot-atom.lua", "themes/atom-zed-gray.toml"):
+        old = config_dir / relative
+        old_source = repo / ".config/cliamp" / relative
+        if old.is_symlink() and Path(os.readlink(old)) == old_source:
+            backup(old)
+            old.unlink()
+
+    config = config_dir / "config.toml"
+    original = config.read_text() if config.exists() else ""
+    template = (repo / ".config/cliamp/config.toml").read_text()
+    updated = merge_config(original, template) if original else template
+    if updated != original:
+        if config.exists():
+            backup(config)
+        config.write_text(updated)
+        print(f"configured {config}", flush=True)
+
+    # Generated colors and runtime config stay local; cliamp may save credentials there.
+    subprocess.run([sys.executable, str(repo / "script/amp"), "--refresh-theme"], check=True)
+    cliamp = shutil.which("cliamp")
+    if cliamp:
+        for source in sorted((repo / ".config/cliamp/plugins").glob("*.lua")):
+            if source.name != "mandelbrot-atom.lua":
+                subprocess.run([cliamp, "plugins", "trust", "--yes", source.stem], check=True)
+    else:
+        print("cliamp is unavailable; run setup-cliamp again after installing it to trust plugins.")
+    print("Defaults: ANSIgray + ANSIbrot. Launch amp from a fresh shell.")
+
+
+if __name__ == "__main__":
+    main()

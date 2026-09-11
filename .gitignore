@@ -10,3 +10,16 @@
 
 # Karabiner runtime backups (track canonical config only)
 .config/karabiner/automatic_backups/
+
+# cliamp runtime state and authentication stay machine-local.
+.config/cliamp/*credentials*
+.config/cliamp/*token*
+.config/cliamp/*cookie*
+.config/cliamp/backups/
+.config/cliamp/*.log
+.config/cliamp/*.sock*
+.config/cliamp/*.lock
+.config/cliamp/history.toml
+.config/cliamp/resume.json
+.config/cliamp/plugins/.trust.json
+.config/cliamp/themes/ANSIgray.toml

@@ -42,4 +42,18 @@ check_link "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabine
 check_link "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
 check_link "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
 
+CLIAMP_DIR="${CLIAMP_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/cliamp}"
+for plugin in "$REPO_ROOT"/.config/cliamp/plugins/*.lua; do
+  [[ "$(basename "$plugin")" == "mandelbrot-atom.lua" ]] && continue
+  check_link "$plugin" "$CLIAMP_DIR/plugins/$(basename "$plugin")"
+done
+for config in config.toml themes/ANSIgray.toml; do
+  if [[ -f "$CLIAMP_DIR/$config" ]]; then
+    printf 'ok    %s (machine-local)\n' "$CLIAMP_DIR/$config"
+  else
+    printf 'miss  %s (run script/setup-cliamp)\n' "$CLIAMP_DIR/$config"
+    STATUS=1
+  fi
+done
+
 exit "$STATUS"
