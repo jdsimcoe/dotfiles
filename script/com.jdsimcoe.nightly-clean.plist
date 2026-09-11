@@ -10,21 +10,38 @@
         <string>/usr/local/bin/nightly-clean</string>
     </array>
 
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>MIN_IDLE_SECONDS_BEFORE_REBOOT</key>
+        <string>1800</string>
+        <key>REBOOT_AFTER_CLEAN</key>
+        <string>1</string>
+    </dict>
+
     <key>StartCalendarInterval</key>
     <dict>
         <key>Weekday</key>
-        <integer>6</integer>
+        <integer>5</integer>
         <key>Hour</key>
-        <integer>0</integer>
+        <integer>23</integer>
         <key>Minute</key>
-        <integer>0</integer>
+        <integer>59</integer>
     </dict>
 
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <key>Nice</key>
+    <integer>10</integer>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+
     <key>StandardOutPath</key>
-    <string>/tmp/nightly-clean-launchd.log</string>
+    <string>/Library/Logs/com.jdsimcoe.nightly-clean/launchd.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/tmp/nightly-clean-launchd.log</string>
+    <string>/Library/Logs/com.jdsimcoe.nightly-clean/launchd.log</string>
 
     <key>RunAtLoad</key>
     <false/>

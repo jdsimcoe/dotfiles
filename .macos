@@ -13,6 +13,31 @@ sudo -v
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
 ###############################################################################
+# Full Disk Access                                                            #
+###############################################################################
+
+# Some settings below (e.g. Mail's sandboxed preferences and other
+# TCC-protected plists) require the terminal emulator running this script
+# (Terminal, Ghostty, iTerm2, …) to have Full Disk Access.
+if ! ls "$HOME/Library/Application Support/com.apple.TCC" &>/dev/null; then
+	term_app="${TERM_PROGRAM:-your terminal app}"
+	case "$term_app" in
+		Apple_Terminal) term_app="Terminal" ;;
+		ghostty) term_app="Ghostty" ;;
+		iTerm.app) term_app="iTerm2" ;;
+	esac
+	echo "⚠️  ${term_app} does not have Full Disk Access."
+	echo
+	echo "Opening System Settings → Privacy & Security → Full Disk Access."
+	echo "Enable it for ${term_app}, then QUIT and REOPEN ${term_app} and"
+	echo "re-run this script (macOS only applies the grant on relaunch)."
+	open "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
+	echo
+	read -r -p "Continue anyway without Full Disk Access? [y/N] " reply
+	[[ "$reply" =~ ^[Yy]$ ]] || exit 1
+fi
+
+###############################################################################
 # General UI/UX                                                               #
 ###############################################################################
 
@@ -251,10 +276,11 @@ defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
 # Delete Conversation… → ⌘+Delete
 # Delete Conversations… → ⌘+Delete
 # Share… → ⌥⇧⌘S
-defaults write -g NSUserKeyEquivalents \
-  "$(printf 'Delete Conversation\u2026')" "@$(printf '\010')" \
-  "$(printf 'Delete Conversations\u2026')" "@$(printf '\010')" \
-  "Share..." "@~\$s"
+# `-dict-add` merges into NSUserKeyEquivalents instead of replacing it,
+# so shortcuts added by hand in System Settings survive re-runs.
+defaults write -g NSUserKeyEquivalents -dict-add "Delete Conversation\u2026" "@\U0008"
+defaults write -g NSUserKeyEquivalents -dict-add "Delete Conversations\u2026" "@\U0008"
+defaults write -g NSUserKeyEquivalents -dict-add "Share..." "@~\$s"
 
 ###############################################################################
 # Mail                                                                        #
@@ -270,6 +296,10 @@ defaults write com.apple.mail AddressesIncludeNameOnPasteboard -bool false
 # ⌘+Enter to send and resend in Mail.app (PlistBuddy required due to sandbox)
 osascript -e 'tell application "Mail" to quit' 2>/dev/null || true
 sleep 1
+
+# Use the macOS system font at 12 pt for the message list and messages.
+"$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/script/set-mail-system-font" 12
+
 /usr/libexec/PlistBuddy \
   -c "Delete :NSUserKeyEquivalents" \
   -c "Add :NSUserKeyEquivalents dict" \

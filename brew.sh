@@ -24,8 +24,6 @@ fi
 
 TAPS=(
   "bjarneo/cliamp"
-  "agavra/tap"
-  "anomalyco/tap"
   "smudge/smudge"
 )
 

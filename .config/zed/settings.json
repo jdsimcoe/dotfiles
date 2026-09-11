@@ -1,8 +1,13 @@
 {
+  "edit_predictions": {
+    "open_ai_compatible_api": {
+      "api_url": ""
+    }
+  },
   "cli_default_open_behavior": "existing_window",
   "proxy": "",
   "icon_theme": {
-    "mode": "dark",
+    "mode": "light",
     "light": "Zed (Default)",
     "dark": "Zed (Default)",
   },
@@ -53,8 +58,8 @@
   "buffer_font_size": 15,
   "soft_wrap": "editor_width",
   "theme": {
-    "mode": "dark",
-    "light": "Zed Legacy: Atelier Cave Light",
-    "dark": "Zed Legacy: Atelier Cave Dark",
+    "mode": "light",
+    "light": "Atom Dark",
+    "dark": "Atom Dark",
   },
 }

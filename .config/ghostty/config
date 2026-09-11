@@ -1,26 +1,20 @@
 # Ghostty
-auto-update-channel = stable
-theme = Flexoki Dark
+auto-update-channel = tip
+theme = Atom Zed Dark
 
-# Term
-term = xterm-ghostty
-title = Ghostty
-command = /bin/zsh -l
-
-# fonts
-font-family = "Monaspace Xenon"
+# Font
+font-family = "Pragma"
 font-size = 16
+adjust-cell-height = 4
+
+# Window
 macos-titlebar-style = tabs
+window-save-state = always
+window-step-resize = false
 
-# window stuff
-adjust-cell-height = 6
-window-height = 36
-window-vsync = true
-window-width = 132
-window-save-state = "always"
+window-padding-x = 6
+window-padding-y = 4
+window-padding-balance = true
 
-# theme
-# background = 18171c
-# foreground = efecf4
-
+# Input
 keybind = shift+enter=text:\n

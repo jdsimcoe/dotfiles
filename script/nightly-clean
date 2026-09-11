@@ -1,278 +1,293 @@
 #!/usr/bin/env bash
 
-# nightly-clean — Unattended weekly macOS maintenance
-# Designed to run via launchd at midnight. No prompts.
-# Resets Bluetooth, runs Mole cleanup/optimization, flushes DNS, prunes
-# remaining targeted caches, and restarts the machine.
+# nightly-clean — aggressive unattended weekly macOS maintenance
 #
-# Author: Jonathan Simcoe
-# See also: script/clean (interactive, full version)
+# Runs as a root LaunchDaemon but points user-level tools at the target user's
+# home. The launchd job is scheduled for Friday night by setup-nightly-clean.
+# Use --dry-run to preview Mole and list the remaining maintenance steps.
 
 set -euo pipefail
 
-# When running as a LaunchDaemon (root), HOME defaults to /var/root.
-# Hardcode the target user's home so cache paths resolve correctly.
-TARGET_USER="jdsimcoe"
-TARGET_GROUP="staff"
-export HOME="/Users/${TARGET_USER}"
+TARGET_USER="${TARGET_USER:-jdsimcoe}"
+TARGET_GROUP="${TARGET_GROUP:-staff}"
+TARGET_HOME="/Users/${TARGET_USER}"
+REBOOT_AFTER_CLEAN="${REBOOT_AFTER_CLEAN:-1}"
+MIN_IDLE_SECONDS_BEFORE_REBOOT="${MIN_IDLE_SECONDS_BEFORE_REBOOT:-1800}"
+DRY_RUN=0
+
+PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH
+export HOME="${TARGET_HOME}"
 export USER="${TARGET_USER}"
 export LOGNAME="${TARGET_USER}"
 export SUDO_USER="${TARGET_USER}"
-export BLUEUTIL_ALLOW_ROOT=1
-BT_RESET_SCRIPT="${HOME}/Developer/dotfiles/script/bt-reset"
-PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-KANDJI_BIN="/usr/local/bin/kandji"
-SOFTWAREUPDATE_BIN="/usr/sbin/softwareupdate"
-MOLE_BIN=""
 
-LOG="/tmp/nightly-clean-$(date +%Y%m%d).log"
-exec > >(tee -a "$LOG") 2>&1
+LOG_DIR="/Library/Logs/com.jdsimcoe.nightly-clean"
+LOG_FILE="${LOG_DIR}/weekly-clean-$(date +%Y%m%d-%H%M%S).log"
+STARTED_AT="$(date +%s)"
+INITIAL_AVAILABLE_KB="$(df -k / | awk 'NR == 2 { print $4 }')"
 
-echo "========================================="
-echo "nightly-clean — $(date)"
-echo "========================================="
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=1
+elif [[ $# -gt 0 ]]; then
+  printf 'Usage: %s [--dry-run]\n' "$0" >&2
+  exit 2
+fi
 
-if [[ "$(uname)" != "Darwin" ]]; then
-  echo "ERROR: This script is for macOS only."
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  printf '%s\n' "error This script is for macOS only." >&2
   exit 1
 fi
+
+if [[ "$(id -u)" -ne 0 ]]; then
+  printf '%s\n' "error Run with sudo or install the LaunchDaemon first." >&2
+  exit 1
+fi
+
+if [[ ! -d "${TARGET_HOME}" ]]; then
+  printf '%s\n' "error Target home does not exist: ${TARGET_HOME}" >&2
+  exit 1
+fi
+
+mkdir -p "${LOG_DIR}"
+touch "${LOG_FILE}"
+chmod 640 "${LOG_FILE}"
+exec > >(/usr/bin/tee -a "${LOG_FILE}") 2>&1
+
+step() { printf '\n▶ %s\n' "$1"; }
+ok() { printf '✔ %s\n' "$1"; }
+warn() { printf '⚠ %s\n' "$1"; }
+
+finish() {
+  local exit_code=$?
+  local finished_at elapsed final_available_kb recovered_kb
+  finished_at="$(date +%s)"
+  elapsed=$((finished_at - STARTED_AT))
+  final_available_kb="$(df -k / | awk 'NR == 2 { print $4 }')"
+  recovered_kb=$((final_available_kb - INITIAL_AVAILABLE_KB))
+
+  printf '\n=========================================\n'
+  printf 'weekly-clean finished — %s\n' "$(date)"
+  printf 'exit=%s duration=%ss recovered≈%sMB\n' \
+    "${exit_code}" "${elapsed}" "$((recovered_kb / 1024))"
+  printf 'log=%s\n' "${LOG_FILE}"
+  printf '=========================================\n'
+
+  chown "${TARGET_USER}:${TARGET_GROUP}" "${LOG_FILE}" 2>/dev/null || true
+  exit "${exit_code}"
+}
+trap finish EXIT
+
+run_as_target_user() {
+  /usr/bin/sudo -u "${TARGET_USER}" /usr/bin/env \
+    HOME="${TARGET_HOME}" \
+    USER="${TARGET_USER}" \
+    LOGNAME="${TARGET_USER}" \
+    CI=1 \
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
+    PATH="${PATH}" \
+    "$@" </dev/null
+}
+
+is_corepack_shim() {
+  local command_path="$1"
+  local link_target
+
+  [[ -L "${command_path}" ]] || return 1
+  link_target="$(readlink "${command_path}" 2>/dev/null || true)"
+  [[ "${link_target}" == *corepack* ]]
+}
 
 find_mole_bin() {
   local candidate
   for candidate in /opt/homebrew/bin/mo /usr/local/bin/mo; do
-    if [[ -x "$candidate" ]]; then
-      printf '%s\n' "$candidate"
+    if [[ -x "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
       return 0
     fi
   done
-
-  command -v mo 2>/dev/null || true
+  return 1
 }
 
 repair_mole_state_ownership() {
   local path
   for path in \
-    "${HOME}/.cache/mole" \
-    "${HOME}/.config/mole" \
-    "${HOME}/Library/Logs/mole"; do
-    if [[ -e "$path" ]]; then
-      chown -R "${TARGET_USER}:${TARGET_GROUP}" "$path" 2>/dev/null || true
+    "${TARGET_HOME}/.cache/mole" \
+    "${TARGET_HOME}/.config/mole" \
+    "${TARGET_HOME}/Library/Logs/mole"; do
+    if [[ -e "${path}" ]]; then
+      chown -R "${TARGET_USER}:${TARGET_GROUP}" "${path}" 2>/dev/null || true
     fi
   done
 }
 
 run_mole_command() {
   local command_name="$1"
-  shift || true
+  local mole_bin="$2"
+  local args=("${command_name}")
+  local dry_run_suffix=""
 
-  if [[ -z "${MOLE_BIN}" ]]; then
-    echo "⚠ Mole CLI not found; skipping mo ${command_name}."
-    return 0
+  if [[ ${DRY_RUN} -eq 1 ]]; then
+    args+=("--dry-run")
+    dry_run_suffix=" --dry-run"
   fi
 
-  echo "  • Mole: mo ${command_name} $*"
+  printf '  • Mole: mo %s%s\n' "${command_name}" "${dry_run_suffix}"
+
   if env \
-    HOME="${HOME}" \
+    HOME="${TARGET_HOME}" \
     USER="${TARGET_USER}" \
     LOGNAME="${TARGET_USER}" \
     SUDO_USER="${TARGET_USER}" \
     NO_COLOR=1 \
     TERM=dumb \
-    "${MOLE_BIN}" "${command_name}" "$@"; then
-    echo "  ✔ Mole ${command_name} completed."
+    "${mole_bin}" "${args[@]}"; then
+    ok "Mole ${command_name} completed."
   else
-    echo "⚠ Mole ${command_name} returned non-zero; continuing anyway."
+    warn "Mole ${command_name} returned non-zero; continuing."
   fi
 
   repair_mole_state_ownership
 }
 
-MOLE_BIN="$(find_mole_bin)"
-
-########################################
-# 1) Bluetooth service reset
-########################################
-echo "▶ Resetting Bluetooth service..."
-if [[ -x "${BT_RESET_SCRIPT}" ]]; then
-  "${BT_RESET_SCRIPT}" || echo "⚠ bt-reset returned non-zero; continuing anyway."
-  echo "✔ Bluetooth reset completed."
-else
-  echo "⚠ bt-reset script not found at ${BT_RESET_SCRIPT}; skipping Bluetooth reset."
-fi
-
-########################################
-# 2) Flush DNS cache
-########################################
-echo "▶ Flushing DNS cache..."
-dscacheutil -flushcache || true
-killall -HUP mDNSResponder 2>/dev/null || true
-echo "✔ DNS cache flushed."
-
-########################################
-# 3) Mole deep cleanup and optimization
-#
-# The launchd job runs as root, so Mole can perform sudo-gated portions without
-# prompting. Keep HOME/USER pointed at the target account so user caches and
-# Mole's operation log resolve to /Users/jdsimcoe, then repair ownership after.
-########################################
-echo "▶ Running Mole cleanup and optimization..."
-run_mole_command clean
-run_mole_command optimize
-echo "✔ Mole pass completed."
-
-########################################
-# 4) System logs (truncate bloated logs, remove old archives)
-########################################
-echo "▶ Pruning system logs..."
-find /var/log -type f -name "*.log" -size +50M -exec truncate -s 0 {} \; 2>/dev/null || true
-find /var/log -type f -name "*.gz" -mtime +14 -delete 2>/dev/null || true
-echo "✔ System logs pruned."
-
-########################################
-# 5) User-level cache pruning
-#    (Skip browser caches — only prune general app caches)
-########################################
-echo "▶ Pruning user caches (excluding browsers)..."
-USER_CACHE="${HOME}/Library/Caches"
-
-# Prune old, large files from user caches — but skip browser directories
-find "${USER_CACHE}" \
-  -not -path "*/com.apple.Safari*" \
-  -not -path "*/Dia*" \
-  -not -path "*/Google/Chrome*" \
-  -not -path "*/Firefox*" \
-  -not -path "*/Arc*" \
-  -not -path "*/BraveSoftware*" \
-  -not -path "*/Microsoft Edge*" \
-  -type f -mtime +14 -size +256k -delete 2>/dev/null || true
-echo "✔ User caches pruned (browsers untouched)."
-
-########################################
-# 6) QuickLook cache
-########################################
-echo "▶ Clearing QuickLook cache..."
-qlmanage -r cache 2>/dev/null || true
-rm -rf "${HOME}/Library/Caches/com.apple.QuickLook.thumbnailcache" 2>/dev/null || true
-rm -rf "${HOME}/Library/Caches/com.apple.QuickLookThumbnailsAgent" 2>/dev/null || true
-echo "✔ QuickLook cache cleared."
-
-########################################
-# 7) Font caches
-########################################
-echo "▶ Clearing font caches..."
-atsutil databases -remove 2>/dev/null || true
-echo "✔ Font caches cleared."
-
-########################################
-# 8) Crash reports older than 30 days
-########################################
-echo "▶ Removing old crash reports..."
-find "${HOME}/Library/Logs/DiagnosticReports" -type f -mtime +30 -delete 2>/dev/null || true
-find /Library/Logs/DiagnosticReports -type f -mtime +30 -delete 2>/dev/null || true
-echo "✔ Old crash reports removed."
-
-########################################
-# 9) Container cache pruning
-########################################
-echo "▶ Pruning container caches..."
-CONTAINERS_DIR="${HOME}/Library/Containers"
-find "${CONTAINERS_DIR}" -path "*/Data/Library/Caches/*" -type f -mtime +14 -size +256k -delete 2>/dev/null || true
-find "${CONTAINERS_DIR}" -path "*/Data/Library/Logs/*" -type f -mtime +30 -size +1M -delete 2>/dev/null || true
-echo "✔ Container caches pruned."
-
-########################################
-# 10) BSD periodic maintenance
-########################################
-echo "▶ Running periodic maintenance scripts..."
-periodic daily weekly monthly 2>/dev/null || true
-echo "✔ Periodic maintenance completed."
-
-########################################
-# 11) Purge inactive memory
-########################################
-echo "▶ Purging inactive memory..."
-purge 2>/dev/null || true
-echo "✔ Memory purged."
-
-########################################
-# 12) Flush APFS snapshot metadata
-########################################
-echo "▶ Cleaning stale APFS snapshots..."
-SNAPSHOTS=$(tmutil listlocalsnapshotdates / 2>/dev/null | tail -n +2 || true)
-if [[ -n "$SNAPSHOTS" ]]; then
-  SNAP_COUNT=0
-  echo "$SNAPSHOTS" | while read -r snap; do
-    [[ -n "$snap" ]] && tmutil deletelocalsnapshots "$snap" 2>/dev/null || true
-    ((SNAP_COUNT++)) || true
-  done
-  echo "✔ Local Time Machine snapshots removed."
-else
-  echo "✔ No stale snapshots found."
-fi
-
-########################################
-# 13) Rotate old nightly-clean logs
-########################################
-echo "▶ Rotating old nightly-clean logs..."
-find /tmp -name "nightly-clean-*.log" -mtime +7 -delete 2>/dev/null || true
-echo "✔ Old logs removed (keeping last 7 days)."
-
-########################################
-# 14) Flush kernel/network caches
-########################################
-echo "▶ Resetting network service order and flushing routes..."
-route -n flush 2>/dev/null || true
-echo "✔ Routing table flushed."
-
-########################################
-# 15) Managed app + macOS updates
-########################################
-echo "▶ Running Kandji and macOS updates..."
-set +e
-
-if [[ -x "${KANDJI_BIN}" ]]; then
-  echo "  • Kandji: refreshing MDM state..."
-  "${KANDJI_BIN}" update-mdm || echo "⚠ Kandji update-mdm returned non-zero."
-
-  echo "  • Kandji: checking library items..."
-  "${KANDJI_BIN}" library || echo "⚠ Kandji library returned non-zero."
-
-  echo "  • Kandji: refreshing installed app inventory..."
-  "${KANDJI_BIN}" collect-apps || echo "⚠ Kandji collect-apps returned non-zero."
-else
-  echo "⚠ Kandji CLI not found at ${KANDJI_BIN}; skipping Kandji update pass."
-fi
-
-if [[ -x "${SOFTWAREUPDATE_BIN}" ]]; then
-  echo "  • macOS: forcing update scan..."
-  "${SOFTWAREUPDATE_BIN}" --background --force || echo "⚠ softwareupdate background scan returned non-zero."
-
-  echo "  • macOS: listing available updates..."
-  AVAILABLE_UPDATES="$("${SOFTWAREUPDATE_BIN}" --list 2>&1 || true)"
-  echo "${AVAILABLE_UPDATES}"
-
-  if echo "${AVAILABLE_UPDATES}" | grep -Eq '^\s*\*'; then
-    echo "  • macOS: installing all available updates..."
-    "${SOFTWAREUPDATE_BIN}" --install --all --agree-to-license || \
-      echo "⚠ softwareupdate install returned non-zero (owner auth may be required on Apple Silicon)."
+console_idle_seconds() {
+  local idle_ns
+  idle_ns="$(ioreg -c IOHIDSystem -d 4 | awk '/HIDIdleTime/ { print $NF; exit }' | tr -d '"')"
+  if [[ "${idle_ns}" =~ ^[0-9]+$ ]]; then
+    printf '%s\n' "$((idle_ns / 1000000000))"
   else
-    echo "  • macOS: no available updates."
+    printf '%s\n' "0"
+  fi
+}
+
+printf '=========================================\n'
+printf 'weekly-clean — %s\n' "$(date)"
+printf 'mode=%s target=%s\n' "$([[ ${DRY_RUN} -eq 1 ]] && printf dry-run || printf live)" "${TARGET_USER}"
+printf '=========================================\n'
+df -h /
+
+step "Running aggressive Mole cleanup and optimization"
+if MOLE_BIN="$(find_mole_bin)"; then
+  run_mole_command clean "${MOLE_BIN}"
+  run_mole_command optimize "${MOLE_BIN}"
+else
+  warn "Mole CLI not found; install 'mo' to enable the main cleanup pass."
+fi
+
+step "Purging developer package-manager caches"
+if [[ ${DRY_RUN} -eq 1 ]]; then
+  printf '%s\n' "  • Would clean Homebrew, npm, Corepack, Yarn, and pnpm caches."
+else
+  if [[ -x /opt/homebrew/bin/brew || -x /usr/local/bin/brew ]]; then
+    BREW_BIN="$(command -v brew)"
+    run_as_target_user "${BREW_BIN}" cleanup -s || warn "Homebrew cleanup returned non-zero."
+    run_as_target_user "${BREW_BIN}" autoremove || warn "Homebrew autoremove returned non-zero."
+  fi
+
+  if command -v npm >/dev/null 2>&1; then
+    run_as_target_user "$(command -v npm)" cache clean --force || warn "npm cleanup returned non-zero."
+  fi
+
+  if command -v corepack >/dev/null 2>&1; then
+    run_as_target_user "$(command -v corepack)" cache clean || warn "Corepack cleanup returned non-zero."
+  fi
+
+  if command -v yarn >/dev/null 2>&1; then
+    YARN_BIN="$(command -v yarn)"
+    if is_corepack_shim "${YARN_BIN}"; then
+      warn "Yarn is a Corepack shim; skipped downloading Yarn just to clean its cache."
+    else
+      run_as_target_user "${YARN_BIN}" cache clean || warn "Yarn cleanup returned non-zero."
+    fi
+  fi
+
+  if command -v pnpm >/dev/null 2>&1; then
+    PNPM_BIN="$(command -v pnpm)"
+    if is_corepack_shim "${PNPM_BIN}"; then
+      warn "pnpm is a Corepack shim; skipped downloading pnpm just to prune its store."
+    else
+      run_as_target_user "${PNPM_BIN}" store prune || warn "pnpm cleanup returned non-zero."
+    fi
+  fi
+fi
+ok "Developer package-manager pass completed."
+
+step "Pruning Xcode build data and stale developer support files"
+DERIVED_DATA="${TARGET_HOME}/Library/Developer/Xcode/DerivedData"
+MODULE_CACHE="${TARGET_HOME}/Library/Developer/Xcode/ModuleCache.noindex"
+ARCHIVES="${TARGET_HOME}/Library/Developer/Xcode/Archives"
+IOS_SUPPORT="${TARGET_HOME}/Library/Developer/Xcode/iOS DeviceSupport"
+WATCHOS_SUPPORT="${TARGET_HOME}/Library/Developer/Xcode/watchOS DeviceSupport"
+
+if [[ ${DRY_RUN} -eq 1 ]]; then
+  printf '%s\n' "  • Would clear DerivedData and ModuleCache."
+  printf '%s\n' "  • Would remove Archives and DeviceSupport older than 90 days."
+else
+  rm -rf "${DERIVED_DATA}" "${MODULE_CACHE}"
+  find "${ARCHIVES}" "${IOS_SUPPORT}" "${WATCHOS_SUPPORT}" \
+    -mindepth 1 -maxdepth 1 -type d -mtime +90 -print -exec rm -rf {} + \
+    2>/dev/null || true
+
+  if command -v xcrun >/dev/null 2>&1; then
+    run_as_target_user "$(command -v xcrun)" simctl delete unavailable 2>/dev/null || true
+  fi
+fi
+ok "Xcode maintenance completed."
+
+step "Removing old crash reports and archived system logs"
+if [[ ${DRY_RUN} -eq 1 ]]; then
+  printf '%s\n' "  • Would remove diagnostic reports older than 30 days."
+  printf '%s\n' "  • Would remove compressed /var/log archives older than 14 days."
+else
+  find "${TARGET_HOME}/Library/Logs/DiagnosticReports" \
+    -type f -mtime +30 -print -delete 2>/dev/null || true
+  find /Library/Logs/DiagnosticReports \
+    -type f -mtime +30 -print -delete 2>/dev/null || true
+  find /var/log -type f -name '*.gz' -mtime +14 -print -delete 2>/dev/null || true
+fi
+ok "Old reports and log archives pruned."
+
+step "Running BSD periodic maintenance"
+if [[ ${DRY_RUN} -eq 1 ]]; then
+  printf '%s\n' "  • Would run periodic daily weekly monthly."
+else
+  periodic daily weekly monthly 2>/dev/null || true
+fi
+ok "Periodic maintenance completed."
+
+step "Deleting local APFS snapshots"
+SNAPSHOTS="$(tmutil listlocalsnapshotdates / 2>/dev/null | tail -n +2 || true)"
+if [[ -z "${SNAPSHOTS}" ]]; then
+  ok "No local snapshots found."
+elif [[ ${DRY_RUN} -eq 1 ]]; then
+  printf '%s\n' "${SNAPSHOTS}"
+else
+  while IFS= read -r snapshot; do
+    [[ -n "${snapshot}" ]] || continue
+    tmutil deletelocalsnapshots "${snapshot}" 2>/dev/null || true
+  done <<<"${SNAPSHOTS}"
+  ok "Local snapshots removed."
+fi
+
+step "Rotating weekly-clean logs"
+if [[ ${DRY_RUN} -eq 0 ]]; then
+  find "${LOG_DIR}" -type f -name 'weekly-clean-*.log' -mtime +60 -delete 2>/dev/null || true
+fi
+ok "Logs retained for 60 days."
+
+if [[ ${DRY_RUN} -eq 1 ]]; then
+  printf '\nDry run complete; no cleanup or restart was performed.\n'
+  exit 0
+fi
+
+if [[ "${REBOOT_AFTER_CLEAN}" == "1" ]]; then
+  IDLE_SECONDS="$(console_idle_seconds)"
+  if (( IDLE_SECONDS >= MIN_IDLE_SECONDS_BEFORE_REBOOT )); then
+    warn "Scheduling restart in one minute (console idle ${IDLE_SECONDS}s)."
+    shutdown -r +1
+  else
+    warn "Skipping restart: console idle ${IDLE_SECONDS}s; need ${MIN_IDLE_SECONDS_BEFORE_REBOOT}s."
   fi
 else
-  echo "⚠ softwareupdate binary not found at ${SOFTWAREUPDATE_BIN}; skipping Apple updates."
+  ok "Restart disabled by REBOOT_AFTER_CLEAN=${REBOOT_AFTER_CLEAN}."
 fi
-
-set -e
-echo "✔ Managed update pass completed."
-
-########################################
-# Done — restart
-########################################
-echo ""
-echo "========================================="
-echo "nightly-clean complete — $(date)"
-echo "Restarting in 10 seconds..."
-echo "========================================="
-
-sleep 10
-shutdown -r now

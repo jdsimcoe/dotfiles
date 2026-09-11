@@ -24,7 +24,7 @@ This will:
 - switch your login shell to zsh
 - run `brew.sh` (unless you pass `--skip-brew`)
 - install cliamp settings and visualizers, with ANSIgray and ANSIbrot as defaults
-- run `.macos` (unless you pass `--skip-macos`)
+- run `.macos` (unless you pass `--skip-macos`), including setting Mail's message list and message fonts to System 12
 
 Example:
 
@@ -37,6 +37,18 @@ Validate that your managed files are still symlinked back to the repo:
 ```bash
 ./script/doctor
 ```
+
+#### Mail system font
+
+The macOS setup applies **System Font Regular 12** to Mail's message list and messages. It generates the archived AppKit font on the current Mac rather than storing an OS-specific binary value in the repo.
+
+To reapply it independently or choose another integer size:
+
+```bash
+./script/set-mail-system-font 12
+```
+
+Run it from a terminal app with Full Disk Access, then relaunch that terminal app before executing the script. No `sudo` is required.
 
 #### cliamp: ANSIgray + ANSIbrot
 
@@ -98,11 +110,31 @@ See [`.zshrc.local.example`](/Users/jdsimcoe/Developer/dotfiles/.zshrc.local.exa
 
 #### Optional maintenance
 
-Run the cleanup script manually when needed:
+Run the prompted cleanup script manually when needed:
 
 ```bash
 ./script/clean
 ```
+
+For aggressive unattended maintenance every Friday at 23:59, install the
+system LaunchDaemon once:
+
+```bash
+./script/setup-nightly-clean
+```
+
+The Mac wakes at 23:57, runs Mole cleanup/optimization, purges package-manager
+and Xcode caches, removes old diagnostics and local APFS snapshots, and rotates
+its logs. It restarts afterward only when the console has been idle for at
+least 30 minutes. It does not install macOS updates.
+
+Preview the unattended job without deleting anything or restarting:
+
+```bash
+sudo /usr/local/bin/nightly-clean --dry-run
+```
+
+Logs are stored in `/Library/Logs/com.jdsimcoe.nightly-clean/` for 60 days.
 
 Bluetooth helpers:
 
@@ -115,3 +147,19 @@ Bluetooth helpers:
 - `bt-reset` cycles Bluetooth power with `blueutil` installed by `brew.sh`, otherwise restarts `bluetoothd`
 - `bt-watch` streams `bluetoothd` and sleep/wake-related logs for a short window
 - `bt-snapshot` saves a support bundle with Bluetooth state, recent `bluetoothd` logs, and recent sleep/wake history
+
+#### Fix app ownership
+
+Re-take ownership of apps that iru (endpoint management) chowns back to root, which blocks [Pictogram](https://pictogramapp.com) from applying custom icons. Prompts for sudo, then runs `chown -R $USER:staff` and `chmod -R u+rwX` on each app.
+
+```bash
+chmod +x script/chowny
+
+# Fix the default list (Claude.app)
+./script/chowny
+
+# Or fix specific apps
+./script/chowny "/Applications/Claude.app" "/Applications/Slack.app"
+```
+
+Edit the `default_apps` array at the top of the script to change the defaults. iru re-chowns apps on its next sweep, so re-run after each reset, then re-apply the icon in Pictogram.

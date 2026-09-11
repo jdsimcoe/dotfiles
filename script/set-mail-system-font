@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+FONT_SIZE="${1:-12}"
+MAIL_DOMAIN="com.apple.mail"
+MAIL_CONTAINER="$HOME/Library/Containers/com.apple.mail"
+MAIL_PREFERENCES="$MAIL_CONTAINER/Data/Library/Preferences/com.apple.mail.plist"
+
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  printf '%s\n' "skip  Mail system font (not macOS)"
+  exit 0
+fi
+
+if [[ ! "$FONT_SIZE" =~ ^[1-9][0-9]*$ ]]; then
+  printf '%s\n' "error Mail font size must be a positive integer: $FONT_SIZE" >&2
+  exit 1
+fi
+
+if ! SWIFT_BIN="$(xcrun --find swift 2>/dev/null)"; then
+  printf '%s\n' "error Swift is required to archive the macOS system font." >&2
+  printf '%s\n' "      Install Xcode Command Line Tools, then rerun this script." >&2
+  exit 1
+fi
+
+# Mail creates its sandbox on first launch. Asking it to quit is harmless when
+# it is closed and ensures it cannot overwrite preferences while they change.
+osascript -e 'tell application "Mail" to quit' 2>/dev/null || true
+for _ in {1..40}; do
+  pgrep -x Mail >/dev/null || break
+  sleep 0.25
+done
+
+if [[ ! -d "$MAIL_CONTAINER" ]]; then
+  printf '%s\n' "error Mail did not create its app container." >&2
+  printf '%s\n' "      Open Mail once, quit it, then rerun this script." >&2
+  exit 1
+fi
+
+if ! ls "$(dirname "$MAIL_PREFERENCES")" >/dev/null 2>&1; then
+  term_app="${TERM_PROGRAM:-your terminal app}"
+  case "$term_app" in
+    Apple_Terminal) term_app="Terminal" ;;
+    ghostty) term_app="Ghostty" ;;
+    iTerm.app) term_app="iTerm2" ;;
+  esac
+  printf '%s\n' "error ${term_app} cannot access Mail's protected app data." >&2
+  printf '%s\n' "      Grant ${term_app} Full Disk Access, relaunch it, and rerun." >&2
+  exit 1
+fi
+
+# NSFont is stored as a keyed archive for MessageListFont. Generate the archive
+# with this Mac's AppKit so the setup remains valid if Apple's internal system
+# font name or archive representation changes in a future macOS release.
+FONT_OUTPUT="$("$SWIFT_BIN" -e '
+import AppKit
+import Foundation
+
+let size = CGFloat(Double(CommandLine.arguments[1])!)
+let font = NSFont.systemFont(ofSize: size)
+let data = try! NSKeyedArchiver.archivedData(
+  withRootObject: font,
+  requiringSecureCoding: false
+)
+
+print(font.fontName)
+print(data.map { String(format: "%02x", $0) }.joined())
+print(data.base64EncodedString())
+' "$FONT_SIZE")"
+
+SYSTEM_FONT_NAME="${FONT_OUTPUT%%$'\n'*}"
+FONT_OUTPUT_REMAINDER="${FONT_OUTPUT#*$'\n'}"
+FONT_DATA="${FONT_OUTPUT_REMAINDER%%$'\n'*}"
+FONT_DATA_BASE64="${FONT_OUTPUT_REMAINDER#*$'\n'}"
+
+if /usr/bin/defaults help 2>&1 | grep -q -- '-container'; then
+  mail_defaults() {
+    /usr/bin/defaults -container "$MAIL_CONTAINER" "$@"
+  }
+else
+  mail_defaults() {
+    /usr/bin/defaults "$@"
+  }
+fi
+
+mail_defaults write "$MAIL_DOMAIN" MessageListFont -data "$FONT_DATA"
+mail_defaults write "$MAIL_DOMAIN" NSFont -string "$SYSTEM_FONT_NAME"
+mail_defaults write "$MAIL_DOMAIN" NSFontSize -int "$FONT_SIZE"
+
+ACTUAL_FONT_NAME="$(/usr/bin/plutil -extract NSFont raw "$MAIL_PREFERENCES")"
+ACTUAL_FONT_SIZE="$(/usr/bin/plutil -extract NSFontSize raw "$MAIL_PREFERENCES")"
+ACTUAL_FONT_DATA_BASE64="$(/usr/bin/plutil -extract MessageListFont raw "$MAIL_PREFERENCES")"
+
+if [[ "$ACTUAL_FONT_NAME" != "$SYSTEM_FONT_NAME" ||
+      "$ACTUAL_FONT_SIZE" != "$FONT_SIZE" ||
+      "$ACTUAL_FONT_DATA_BASE64" != "$FONT_DATA_BASE64" ]]; then
+  printf '%s\n' "error Mail font verification failed." >&2
+  exit 1
+fi
+
+printf '%s\n' "mail  System Font Regular ${FONT_SIZE} (message list and messages)"

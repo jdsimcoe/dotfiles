@@ -1,0 +1,27 @@
+#!/bin/zsh
+# Re-take ownership of apps so Pictogram can apply custom icons.
+# Usage:
+#   ./chowny                          # defaults to the apps listed below
+#   ./chowny "/Applications/Foo.app"  # or pass specific apps
+
+set -e
+
+# Edit this default list to taste
+default_apps=(
+  "/Applications/Claude.app"
+)
+
+apps=("$@")
+[[ ${#apps[@]} -eq 0 ]] && apps=("${default_apps[@]}")
+
+for app in "${apps[@]}"; do
+  if [[ -e "$app" ]]; then
+    echo "→ $app"
+    sudo chown -R "$USER":staff "$app"
+    sudo chmod -R u+rwX "$app"
+  else
+    echo "✗ not found: $app" >&2
+  fi
+done
+
+echo "Done. Re-apply your icon in Pictogram."

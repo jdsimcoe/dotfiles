@@ -10,6 +10,7 @@ alias nightly="sudo /usr/local/bin/nightly-clean"
 alias bt="$HOME/Developer/dotfiles/script/bt-reset"
 alias bt-watch="$HOME/Developer/dotfiles/script/bt-watch"
 alias bt-snapshot="$HOME/Developer/dotfiles/script/bt-snapshot"
+alias chowny="$HOME/Developer/dotfiles/script/chowny"
 alias h="history"
 alias hg="history | tail -n 1000 | grep -i"
 alias ..="cd .."
@@ -118,6 +119,17 @@ macos-icon() {
     return 1
   fi
 
+  local srgb_profile="${MACOS_ICON_SRGB_PROFILE:-/System/Library/ColorSync/Profiles/sRGB Profile.icc}"
+  local display_p3_profile="${MACOS_ICON_P3_PROFILE:-/System/Library/ColorSync/Profiles/Display P3.icc}"
+  if [[ ! -r "$srgb_profile" ]]; then
+    echo "macos-icon: sRGB color profile not found: $srgb_profile" >&2
+    return 1
+  fi
+  if [[ ! -r "$display_p3_profile" ]]; then
+    echo "macos-icon: Display P3 color profile not found: $display_p3_profile" >&2
+    return 1
+  fi
+
   local fit_percent="${MACOS_ICON_FIT:-80.5}"
   if [[ ! "$fit_percent" =~ '^[0-9]+([.][0-9])?$' ]]; then
     echo "macos-icon: MACOS_ICON_FIT must be a number from 1 to 100" >&2
@@ -177,6 +189,7 @@ macos-icon() {
     local target_pixels=$(( icon_widths[$i] * icon_scales[$i] ))
     local raw_png="$tmp_root/raw-${icon_names[$i]}"
     local raw_icc="$tmp_root/raw-${icon_names[$i]}.icc"
+    local -a icc_args=()
 
     (( render_width > 0 )) || render_width=1
 
@@ -192,10 +205,13 @@ macos-icon() {
         return 1
       }
 
-    magick "$raw_png" "$raw_icc" || {
-      rm -rf "$tmp_root"
-      return 1
-    }
+    if magick "$raw_png" "$raw_icc" 2>/dev/null; then
+      icc_args=(+profile icc -profile "$raw_icc" -profile "$display_p3_profile")
+    else
+      # ImageMagick assumes sRGB for profile-less images. Convert those pixels
+      # to Display P3 instead of merely assigning a wider-gamut profile.
+      icc_args=(+profile icc -profile "$srgb_profile" -profile "$display_p3_profile")
+    fi
 
     if (( shadow )); then
       local shadow_blur=$(( (target_pixels * 12 + 500) / 1000 ))
@@ -226,7 +242,8 @@ macos-icon() {
       magick -size "${target_pixels}x${target_pixels}" xc:none \
         "$shadow_png" -compose over -composite \
         "$raw_png" -gravity center -geometry +0+0 -compose over -composite \
-        +profile icc -profile "$raw_icc" \
+        "${icc_args[@]}" \
+        -depth 16 \
         "$iconset/${icon_names[$i]}" || {
           rm -rf "$tmp_root"
           return 1
@@ -236,7 +253,8 @@ macos-icon() {
         -background none \
         -gravity center \
         -extent "${target_pixels}x${target_pixels}" \
-        +profile icc -profile "$raw_icc" \
+        "${icc_args[@]}" \
+        -depth 16 \
         "$iconset/${icon_names[$i]}" || {
           rm -rf "$tmp_root"
           return 1
@@ -255,11 +273,11 @@ macos-icon() {
 }
 
 iconstyle() {
-  sudo chown -R jdsimcoe:staff /Applications/Slack.app
+  sudo chown -R "$USER":staff /Applications/Slack.app
   sudo chmod -R 755 /Applications/Slack.app
   cp "$HOME/Documents/Icons/Slack.icns" /Applications/Slack.app/Contents/Resources/electron.icns
 
-  sudo chown -R jdsimcoe:staff /Applications/Figma.app
+  sudo chown -R "$USER":staff /Applications/Figma.app
   sudo chmod -R 755 /Applications/Figma.app
   cp "$HOME/Desktop/Figma.icns" /Applications/Figma.app/Contents/Resources/electron.icns
 
@@ -344,9 +362,23 @@ fi
 # Added by Actual Computer installer
 export PATH="$HOME/.actual/bin:$PATH"
 
-# >>> grok installer >>>
-export PATH="$HOME/.grok/bin:$PATH"
-# <<< grok installer <<<
 
 # User-local tools
 export PATH="$HOME/.local/bin:$PATH"
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+path=('/Users/jdsimcoe/.juliaup/bin' $path)
+export PATH
+# Tab completion for juliaup and julia channel selection
+[ -f "/Users/jdsimcoe/.julia/juliaup/completions/zsh.zsh" ] && source "/Users/jdsimcoe/.julia/juliaup/completions/zsh.zsh"
+
+# <<< juliaup initialize <<<
+
+# >>> grok installer >>>
+export PATH="$HOME/.grok/bin:$PATH"
+fpath=(~/.grok/completions/zsh $fpath)
+autoload -Uz compinit && compinit -C
+# <<< grok installer <<<
