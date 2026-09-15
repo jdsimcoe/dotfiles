@@ -1,19 +1,18 @@
-if [[ -x /opt/homebrew/bin/brew ]]; then
-  eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+# Homebrew lives in /opt/homebrew on Apple Silicon and /usr/local on Intel.
+for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  if [[ -x "$brew_bin" ]]; then
+    eval "$("$brew_bin" shellenv zsh)"
+    break
+  fi
+done
+unset brew_bin
+
+if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
+  export CPATH="$HOMEBREW_PREFIX/include"
+  export LIBRARY_PATH="$HOMEBREW_PREFIX/lib"
 fi
 
-export PATH="/opt/homebrew/bin:$HOME/.local/bin:$PATH"
-export CPATH="/opt/homebrew/include"
-export LIBRARY_PATH="/opt/homebrew/lib"
-export NVM_DIR="$HOME/.nvm"
+export PATH="$HOME/.local/bin:$PATH"
 export TERM="xterm-256color"
 
 ulimit -n 10000
-
-if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-  . "$NVM_DIR/nvm.sh"
-fi
-
-if [[ -s "$NVM_DIR/bash_completion" ]]; then
-  . "$NVM_DIR/bash_completion"
-fi

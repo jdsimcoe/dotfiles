@@ -37,17 +37,15 @@ FORMULAE=(
   "fd"
   "ffmpeg"
   "fftw"
+  "fnm"
   "gh"
   "ghc"
-  "corepack"
   "imagemagick"
   "mole"
   "neovim"
-  "node"
   "python"
   "smudge/smudge/nightlight"
   "starship"
-  "vercel-cli"
   "webp"
   "yt-dlp"
 )
@@ -77,6 +75,27 @@ for formula in "${FORMULAE[@]}"; do
     brew install "$formula"
   fi
 done
+
+# Node.js comes from fnm with official prebuilt nodejs.org binaries, not the
+# Homebrew node formula: Homebrew no longer bottles node for Intel macOS, so
+# `brew install node` (or corepack/vercel-cli, which depend on it) compiles
+# Node from source there, taking hours. corepack ships inside Node itself and
+# vercel installs through npm.
+echo "Installing Node.js LTS via fnm..."
+eval "$(fnm env)"
+if fnm list | grep -q 'lts-latest'; then
+  echo "  skip node (fnm LTS already installed)"
+else
+  fnm install --lts
+  fnm default lts-latest
+fi
+corepack enable
+
+if command -v vercel >/dev/null 2>&1; then
+  echo "  skip vercel (already on PATH)"
+else
+  npm install --global vercel
+fi
 
 echo "Installing casks..."
 for cask in "${CASKS[@]}"; do

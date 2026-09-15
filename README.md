@@ -24,7 +24,7 @@ This will:
 - copy the Pragma font into `~/Library/Fonts/`
 - set global Git defaults like `push.autoSetupRemote=true`, `user.email`, and `user.name`
 - switch your login shell to zsh
-- run `brew.sh` (unless you pass `--skip-brew`)
+- run `brew.sh` (unless you pass `--skip-brew`), which also installs Node.js LTS through fnm
 - install cliamp settings and visualizers, with ANSIgray and ANSIbrot as defaults
 - run `.macos` (unless you pass `--skip-macos`), including setting Mail's message list and message fonts to System 12
 
@@ -49,6 +49,29 @@ value. The terminal font is Pragma, a custom Iosevka build tracked in
 [`fonts/pragma`](fonts/pragma) and copied into `~/Library/Fonts/` by setup, so
 font and colors carry over to a new machine without manual steps. Restart
 Ghostty (or reload the config) after setup to pick everything up.
+
+#### Node.js
+
+Node is managed by [fnm](https://github.com/Schniz/fnm), not the Homebrew
+`node` formula: Homebrew no longer bottles node for Intel macOS, so on Intel
+Macs `brew install node` compiles from source for hours. fnm downloads
+official prebuilt nodejs.org binaries for both architectures. `brew.sh`
+installs fnm, the current LTS, enables corepack (bundled with Node), and
+installs `vercel` through npm. `.zshrc` activates fnm with `--use-on-cd`, so
+directories with a `.node-version` or `.nvmrc` switch versions automatically.
+
+```bash
+fnm install 24        # install another version
+fnm default 24        # make it the default
+fnm list              # what's installed
+```
+
+Older machines that still have the Homebrew `node`, `corepack`, or
+`vercel-cli` formulae can drop them with:
+
+```bash
+brew uninstall --ignore-dependencies vercel-cli corepack node
+```
 
 #### Mail system font
 
