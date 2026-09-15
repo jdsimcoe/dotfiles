@@ -97,7 +97,7 @@ source ~/.zshrc
 amp
 ```
 
-The saved settings include +6 dB volume, YouTube Music as the default provider,
+The saved settings include 0 dB volume, YouTube Music as the default provider,
 Safari as the cookie source, playlist expansion, Tidal lossless, flat EQ,
 automatic sample rate, 32-bit output, `~/Music`, shuffle off, and 1× speed.
 Existing machine-specific settings are preserved; missing settings are filled
@@ -187,7 +187,7 @@ Bluetooth helpers:
 ./script/bt-snapshot
 ```
 
-- `bt-reset` cycles Bluetooth power with `blueutil` installed by `brew.sh`, otherwise restarts `bluetoothd`
+- `bt-reset` cycles Bluetooth power with `blueutil` if installed (not in `brew.sh`: it has no Intel bottle and needs full Xcode to build), otherwise restarts `bluetoothd`
 - `bt-watch` streams `bluetoothd` and sleep/wake-related logs for a short window
 - `bt-snapshot` saves a support bundle with Bluetooth state, recent `bluetoothd` logs, and recent sleep/wake history
 

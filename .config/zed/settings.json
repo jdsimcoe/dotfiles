@@ -24,11 +24,38 @@
     "dock": "right",
   },
   "agent": {
+    "sandbox_permissions": {
+      "allow_unsandboxed": true,
+      "write_paths": [
+        {
+          "requested": "/Users/jdsimcoe/Library/Caches/Homebrew",
+          "resolved": "/Users/jdsimcoe/Library/Caches/Homebrew"
+        },
+        {
+          "requested": "/usr/local",
+          "resolved": "/usr/local"
+        },
+        {
+          "requested": "/Users/jdsimcoe/.homebrew",
+          "resolved": "/Users/jdsimcoe/.homebrew"
+        },
+        {
+          "requested": "/Users/jdsimcoe/.config/cliamp",
+          "resolved": "/Users/jdsimcoe/.config/cliamp"
+        }
+      ],
+      "network_hosts": [
+        "formulae.brew.sh",
+        "github.com",
+        "*.githubusercontent.com",
+        "api.github.com"
+      ]
+    },
     "default_model": {
-      "provider": "openai",
-      "model": "gpt-5.5-pro",
+      "provider": "zed.dev",
+      "model": "claude-fable-5",
       "enable_thinking": true,
-      "effort": "medium"
+      "effort": "high"
     },
     "dock": "left",
     "favorite_models": [],
@@ -47,6 +74,7 @@
     },
   },
   "telemetry": {
+    "anthropic_retention": true,
     "diagnostics": false,
     "metrics": false,
   },

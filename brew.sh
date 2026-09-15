@@ -27,12 +27,17 @@ TAPS=(
   "smudge/smudge"
 )
 
+# dezoomify-rs is intentionally NOT listed: Homebrew has no Intel macOS bottle
+# for it, and building from source pulls in rust + llvm@22 as build deps,
+# which compile for many hours. If needed, grab the prebuilt binary from
+# https://github.com/lovasoa/dezoomify-rs/releases instead.
+# blueutil is intentionally NOT listed: no Intel macOS bottle, and building it
+# from source requires a full Xcode.app install (CLT is not enough).
+# `script/bt-reset` falls back to restarting bluetoothd when it's absent.
 FORMULAE=(
   "bc"
-  "blueutil"
   "bjarneo/cliamp/cliamp"
   "cabal-install"
-  "dezoomify-rs"
   "direnv"
   "fd"
   "ffmpeg"
@@ -68,13 +73,18 @@ for tap in "${TAPS[@]}"; do
 done
 
 echo "Installing formulae..."
+FAILED_FORMULAE=()
 for formula in "${FORMULAE[@]}"; do
   if brew list --formula "$formula" >/dev/null 2>&1; then
     echo "  skip brew $formula"
   else
-    brew install "$formula"
+    # Don't let one failed formula (e.g. a Tier 3 source build) abort setup.
+    brew install "$formula" || FAILED_FORMULAE+=("$formula")
   fi
 done
+if [[ ${#FAILED_FORMULAE[@]} -gt 0 ]]; then
+  echo "WARNING: failed to install: ${FAILED_FORMULAE[*]}" >&2
+fi
 
 # Node.js comes from fnm with official prebuilt nodejs.org binaries, not the
 # Homebrew node formula: Homebrew no longer bottles node for Intel macOS, so

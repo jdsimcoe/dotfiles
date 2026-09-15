@@ -2,7 +2,16 @@
 
 set -euo pipefail
 
-BLUEUTIL="${BLUEUTIL:-/opt/homebrew/bin/blueutil}"
+# Prefer $BLUEUTIL, then PATH, then common Homebrew locations (ARM and Intel).
+BLUEUTIL="${BLUEUTIL:-$(command -v blueutil || true)}"
+if [[ -z "$BLUEUTIL" ]]; then
+  for candidate in /opt/homebrew/bin/blueutil /usr/local/bin/blueutil; do
+    if [[ -x "$candidate" ]]; then
+      BLUEUTIL="$candidate"
+      break
+    fi
+  done
+fi
 WAIT_SECONDS="${BT_RESET_WAIT_SECONDS:-2}"
 
 if [[ "$(uname)" != "Darwin" ]]; then
@@ -10,7 +19,7 @@ if [[ "$(uname)" != "Darwin" ]]; then
   exit 1
 fi
 
-if [[ -x "$BLUEUTIL" ]]; then
+if [[ -n "$BLUEUTIL" && -x "$BLUEUTIL" ]]; then
   echo "bt-reset: cycling Bluetooth power via blueutil"
   "$BLUEUTIL" --power 0
   sleep "$WAIT_SECONDS"

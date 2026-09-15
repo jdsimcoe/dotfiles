@@ -1,4 +1,4 @@
-volume = 6
+volume = 0
 # Choose a service with Esc; T opens Tidal and Y opens YouTube.
 provider = "ytmusic"
 initial_directory = "~/Music"
