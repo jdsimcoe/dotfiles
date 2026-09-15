@@ -67,6 +67,20 @@ ensure_dir() {
   mkdir -p "$1"
 }
 
+install_font() {
+  local source="$1"
+  local target="$HOME/Library/Fonts/$(basename "$source")"
+
+  if [[ -f "$target" ]] && cmp -s "$source" "$target"; then
+    log "skip  $target (already installed)"
+    return
+  fi
+
+  mkdir -p "$HOME/Library/Fonts"
+  cp "$source" "$target"
+  log "font  $target"
+}
+
 set_default_shell_to_zsh() {
   local zsh_path="/bin/zsh"
 
@@ -115,6 +129,14 @@ link_path "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
 
 # Ghostty (macOS app support path)
 link_path "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+
+# Ghostty custom color themes (the config's `theme =` value resolves here)
+link_path "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
+
+# Pragma terminal font (custom Iosevka build; Ghostty's `font-family`)
+for font in "$REPO_ROOT"/fonts/pragma/*.ttf; do
+  install_font "$font"
+done
 
 # Karabiner-Elements
 link_path "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"

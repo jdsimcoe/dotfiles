@@ -1,5 +1,5 @@
 # Ghostty
-auto-update-channel = tip
+auto-update-channel = stable
 theme = Atom Zed Dark
 
 # Font

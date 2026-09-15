@@ -38,9 +38,20 @@ check_link "$REPO_ROOT/.zshrc" "$HOME/.zshrc"
 check_link "$REPO_ROOT/.config/starship.toml" "$HOME/.config/starship.toml"
 check_link "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
 check_link "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+check_link "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 check_link "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
 check_link "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
 check_link "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
+
+for font in "$REPO_ROOT"/fonts/pragma/*.ttf; do
+  target="$HOME/Library/Fonts/$(basename "$font")"
+  if [[ -f "$target" ]] && cmp -s "$font" "$target"; then
+    printf 'ok    %s (copy of repo font)\n' "$target"
+  else
+    printf 'miss  %s (run script/setup)\n' "$target"
+    STATUS=1
+  fi
+done
 
 CLIAMP_DIR="${CLIAMP_CONFIG_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/cliamp}"
 for plugin in "$REPO_ROOT"/.config/cliamp/plugins/*.lua; do
