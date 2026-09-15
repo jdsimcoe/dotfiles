@@ -62,9 +62,10 @@
     "light": "Atom Dark",
     "dark": "Atom Dark",
   },
-  // Extensions installed automatically on launch; "Atom Dark" comes from atom-theme.
+  // Extensions installed automatically on launch. "Atom Dark" is not an
+  // extension: it ships as .config/zed/themes/atom.json (source: jdsimcoe/atom-zed),
+  // symlinked to ~/.config/zed/themes by script/setup.
   "auto_install_extensions": {
-    "atom-theme": true,
     "html": true,
     "zed-legacy-themes": true,
   },

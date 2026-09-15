@@ -42,6 +42,7 @@ check_link "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 check_link "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
 check_link "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
 check_link "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
+check_link "$REPO_ROOT/.config/zed/themes" "$HOME/.config/zed/themes"
 
 for font in "$REPO_ROOT"/fonts/pragma/*.ttf; do
   target="$HOME/Library/Fonts/$(basename "$font")"

@@ -142,8 +142,9 @@ done
 link_path "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
 link_path "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
 
-# Zed editor (user settings)
+# Zed editor (user settings and local themes, e.g. Atom Dark)
 link_path "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"
+link_path "$REPO_ROOT/.config/zed/themes" "$HOME/.config/zed/themes"
 
 # Git defaults
 set_git_config "push.autoSetupRemote" "true"
