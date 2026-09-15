@@ -142,6 +142,11 @@ def main():
         refresh_theme()
         if not any(arg == "--start-theme" or arg.startswith("--start-theme=") for arg in args):
             args = ["--start-theme", "ANSIgray", *args]
+        ytdlp = shutil.which("yt-dlp")
+        if ytdlp:
+            os.environ["CLIAMP_YTDLP"] = ytdlp
+            shim_dir = Path(__file__).resolve().parent / "cliamp-bin"
+            os.environ["PATH"] = str(shim_dir) + os.pathsep + os.environ.get("PATH", "")
     os.execv(cliamp, [cliamp, *args])
 
 

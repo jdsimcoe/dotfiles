@@ -97,6 +97,14 @@ unavailable, it uses the last resolved ANSIgray theme or a neutral first-run
 fallback. Plain `cliamp` uses cached colors; use `amp` to refresh them.
 `CLIAMP_CONFIG_DIR` and `XDG_CONFIG_HOME` are honored.
 
+`amp` also filters emoji from YouTube titles returned by yt-dlp. It removes
+emoji sequences and tidies leftover whitespace while preserving letters,
+accents, numbers, and ordinary punctuation. This affects cliamp's imported
+titles; it does not edit YouTube or change standalone yt-dlp commands. Relaunch
+`amp` and reopen the playlist to refresh titles already held in memory. This
+filter covers the configured browser-cookie YouTube providers; titles loaded
+from saved playlists or the separate Google OAuth provider are not filtered.
+
 Runtime config and generated colors are kept outside the repo. Authentication
 tokens, browser cookies, history, resume state, logs, and sockets stay local;
 sign in to Tidal and Safari again on a new machine. There are currently no
