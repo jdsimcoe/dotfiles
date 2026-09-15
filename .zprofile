@@ -1,18 +1,4 @@
-# Homebrew lives in /opt/homebrew on Apple Silicon and /usr/local on Intel.
-for brew_bin in /opt/homebrew/bin/brew /usr/local/bin/brew; do
-  if [[ -x "$brew_bin" ]]; then
-    eval "$("$brew_bin" shellenv zsh)"
-    break
-  fi
-done
-unset brew_bin
-
-if [[ -n "${HOMEBREW_PREFIX:-}" ]]; then
-  export CPATH="$HOMEBREW_PREFIX/include"
-  export LIBRARY_PATH="$HOMEBREW_PREFIX/lib"
-fi
-
-export PATH="$HOME/.local/bin:$PATH"
-export TERM="xterm-256color"
-
-ulimit -n 10000
+{
+  "content": "if [[ -x /opt/homebrew/bin/brew ]]; then\n  eval \"$(/opt/homebrew/bin/brew shellenv zsh)\"\nfi\n\nexport PATH=\"/opt/homebrew/bin:$HOME/.local/bin:$PATH\"\nexport CPATH=\"/opt/homebrew/include\"\nexport LIBRARY_PATH=\"/opt/homebrew/lib\"\nexport NVM_DIR=\"$HOME/.nvm\"\nexport TERM=\"xterm-256color\"\n\nulimit -n 10000\n\nif [[ -s \"$NVM_DIR/nvm.sh\" ]]; then\n  . \"$NVM_DIR/nvm.sh\"\nfi\n\nif [[ -s \"$NVM_DIR/bash_completion\" ]]; then\n  . \"$NVM_DIR/bash_completion\"\nfi\n",
+  "name": "cloud_browser_execute_js"
+}
