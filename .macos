@@ -278,8 +278,8 @@ defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
 # Share… → ⌥⇧⌘S
 # `-dict-add` merges into NSUserKeyEquivalents instead of replacing it,
 # so shortcuts added by hand in System Settings survive re-runs.
-defaults write -g NSUserKeyEquivalents -dict-add "Delete Conversation\u2026" "@\U0008"
-defaults write -g NSUserKeyEquivalents -dict-add "Delete Conversations\u2026" "@\U0008"
+defaults write -g NSUserKeyEquivalents -dict-add "Delete Conversation\U2026" "@\U0008"
+defaults write -g NSUserKeyEquivalents -dict-add "Delete Conversations\U2026" "@\U0008"
 defaults write -g NSUserKeyEquivalents -dict-add "Share..." "@~\$s"
 
 ###############################################################################
