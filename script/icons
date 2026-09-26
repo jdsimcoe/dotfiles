@@ -64,6 +64,9 @@ ensure_dirs() {
 
 sha() { shasum -a 256 "$1" 2>/dev/null | cut -d' ' -f1; }
 
+# Custom-icon resources live in the resource fork; the data fork is empty.
+overlay_sha() { sha "$1/..namedfork/rsrc"; }
+
 app_name() { basename "$1" .app; }
 
 # resolve_app <input> -> prints app path or fails
@@ -167,7 +170,7 @@ apply_overlay() {
   local app="$1" icns="$2"
   local res="$app/Icon"$'\r'
   local state="$(state_get "$app")"
-  if [[ "$FORCE" != 1 && -e "$res" && -n "$state" && "$(sha "$res")" == "$state" ]]; then
+  if [[ "$FORCE" != 1 && -e "$res" && -n "$state" && "$(overlay_sha "$res")" == "$state" ]]; then
     return 1
   fi
   chflags nouchg "$res" 2>/dev/null || true
@@ -179,7 +182,7 @@ apply_overlay() {
   fi
   # uchg makes the app's own NSWorkspace.setIcon rewrite fail.
   chflags uchg "$res" 2>/dev/null || true
-  state_set "$app" "$res"
+  print -r -- "$(overlay_sha "$res")" > "$(state_file "$app")"
   return 0
 }
 
@@ -285,6 +288,7 @@ cmd_add() {
     read -r "icon?Icon path (drag/paste, .icns/.png): "
   fi
   icon="$(normalize_path "$icon")"
+  [[ -d "$icon" && "$icon" == *.icon ]] && die "Icon Composer bundles aren't supported directly; run: macos-icon \"$icon\" and register the .icns"
   [[ -f "$icon" ]] || die "icon not found: $icon"
 
   if [[ -z "$mode" ]]; then
@@ -440,7 +444,7 @@ cmd_list() {
         iconfile="${iconfile:-AppIcon}"
         cur="$(sha "$app/Contents/Resources/${iconfile%.icns}.icns")"
       else
-        cur="$(sha "$app/Icon"$'\r')"
+        cur="$(overlay_sha "$app/Icon"$'\r')"
       fi
       if [[ -n "$state" && "$cur" == "$state" ]]; then applied="yes"; else applied="no"; fi
     fi
