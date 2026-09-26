@@ -8,6 +8,7 @@ Personal machine setup split into:
 - `fonts/pragma` with the Pragma terminal font (custom Iosevka build) installed by setup
 - `script/setup` as the master bootstrap script for new machines
 - `script/clean` as an optional manual maintenance/cleanup script (not run by setup)
+- `script/icons` as a persistent custom-app-icon registry with a LaunchAgent that re-applies them
 
 #### New machine setup
 
@@ -206,3 +207,19 @@ chmod +x script/chowny
 ```
 
 Edit the `default_apps` array at the top of the script to change the defaults. iru re-chowns apps on its next sweep, so re-run after each reset, then re-apply the icon in Pictogram.
+
+#### Custom app icons
+
+Some apps (Arc, for one) rewrite their own Finder icon on launch via `NSWorkspace.setIcon`, and Sparkle auto-updates replace the whole bundle — so one-off icon changes don't stick. `script/icons` keeps a registry in `~/.config/icons/` (icon copies in `store/`, originals in `backup/`, applied-state hashes in `state/`) and a LaunchAgent that re-applies them at login, every 5 minutes, and whenever `/Applications` or a registered app changes.
+
+```bash
+icons add                 # interactive: pick app, paste icon path, choose mode
+icons add Arc ~/Documents/Icons/Arc.icns
+icons add Slack ~/Documents/Icons/Slack.png --bundle
+icons list
+icons apply               # re-apply everything (what the LaunchAgent runs)
+icons install             # LaunchAgent: at login, every 5 min, and when /Applications or a registered app changes
+icons restore Arc / icons rm Arc / icons doctor
+```
+
+`overlay` mode is the safe default: it sets a Finder custom icon and locks it with `chflags uchg` so the app's own `setIcon` rewrite fails. `bundle` mode replaces the real `.icns` inside the bundle and ad-hoc re-signs, which breaks the Developer ID signature — expect keychain/permission re-prompts and the app's updater may refuse to update, so use it only when overlay isn't enough. Non-`.icns` images (`.png`/`.jpg`/`.tiff`) are converted automatically; Icon Composer `.icon` bundles should first go through `macos-icon` to produce an `.icns`. If iru re-chowns the app back to root, run `script/chowny` and then `icons apply`.
