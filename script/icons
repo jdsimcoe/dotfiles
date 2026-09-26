@@ -42,7 +42,7 @@ usage() {
   cat <<EOF
 usage: icons <command> [args]
 
-  add [app] [icon] [--bundle|--overlay]   register an icon (interactive if args missing)
+  add [app] [icon] [--bundle|--overlay] [--yes]   register an icon (interactive if args missing)
   list                                  show the registry and applied state
   rm <app>                              remove entry, restore original icon
   apply [app...] [--force] [--quiet]    re-apply registry icons
@@ -263,12 +263,21 @@ pick_app() {
 
 agent_installed() { [[ -f "$AGENT_PLIST" ]]; }
 
+is_chromium_or_electron() {
+  local app="$1"
+  [[ -d "$app/Contents/Frameworks/Electron Framework.framework" ]] && return 0
+  [[ -d "$app/Contents/Frameworks/Chromium Embedded Framework.framework" ]] && return 0
+  local hit=( "$app/Contents/Frameworks/"*" Framework.framework/Versions/"*"/Libraries/libEGL.dylib"(N) )
+  (( ${#hit[@]} ))
+}
+
 cmd_add() {
-  local app_arg="" icon_arg="" mode=""
+  local app_arg="" icon_arg="" mode="" yes=0
   while (( $# )); do
     case "$1" in
       --bundle) mode="bundle" ;;
       --overlay) mode="overlay" ;;
+      --yes) yes=1 ;;
       *) if [[ -z "$app_arg" ]]; then app_arg="$1"; else icon_arg="$1"; fi ;;
     esac
     shift
@@ -293,13 +302,26 @@ cmd_add() {
 
   if [[ -z "$mode" ]]; then
     local m
-    read -r "m?Mode [o]verlay (safe, Finder custom icon) / [b]undle (overwrite real bundle icon + ad-hoc re-sign, breaks Developer ID signature) [o]: "
+    read -r "m?Mode [o]verlay (safe, default) / [b]undle (rewrites the app bundle; DANGEROUS) [o]: "
     [[ "$m" == [bB]* ]] && mode="bundle" || mode="overlay"
   fi
-  [[ "$mode" == "bundle" ]] && warn "bundle mode breaks the Developer ID signature; expect keychain/permission re-prompts"
 
   local name stored
   name="$(app_name "$app")"
+  if [[ "$mode" == "bundle" ]]; then
+    if is_chromium_or_electron "$app"; then
+      die "bundle mode would break $name: Chromium/Electron apps bind their Keychain \"Safe Storage\" key to the original code signature, so an ad-hoc re-sign locks you out of your profile. Use overlay mode."
+    fi
+    if (( ! yes )); then
+      warn "bundle mode breaks the Developer ID signature"
+      warn "Keychain items and TCC permissions bound to the signature may reset"
+      warn "the app's updater will likely refuse updates until you reinstall"
+      local confirm
+      read -r "confirm?Type YES to continue: "
+      [[ "$confirm" == "YES" ]] || die "aborted"
+    fi
+  fi
+
   stored="$(store_icon "$name" "$icon")"
   registry_upsert "$app" "$mode" "${stored:t}"
   ok "registered $name ($mode) -> ${stored:t}"
@@ -392,6 +414,7 @@ cmd_restore() {
     fi
     [[ -f "$bdir/Info.plist" ]] && cp "$bdir/Info.plist" "$plist"
     codesign --force --deep --sign - "$app" >/dev/null 2>&1 || true
+    warn "signature is still ad-hoc; reinstall $(app_name "$app") from its vendor to restore the original signature"
   else
     chflags nouchg "$app/Icon"$'\r' 2>/dev/null || true
     fileicon rm "$app" 2>/dev/null || warn "fileicon rm failed for $app"
