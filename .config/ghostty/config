@@ -3,7 +3,7 @@ auto-update-channel = stable
 theme = Atom Zed Dark
 
 # Font
-font-family = "Pragma"
+font-family = "Berkeley Mono"
 font-size = 16
 adjust-cell-height = 4
 

@@ -368,7 +368,6 @@ fi
 # Added by Actual Computer installer
 export PATH="$HOME/.actual/bin:$PATH"
 
-
 # User-local tools
 export PATH="$HOME/.local/bin:$PATH"
 
