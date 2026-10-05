@@ -91,11 +91,26 @@ macos-icon() {
     output="$icon_dir/${output_name%.icns}.icns"
   fi
 
-  local -a ictool_candidates=(
-    "/Applications/Icon Composer.app/Contents/Executables/ictool"
-    "/Applications/Xcode.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool"
-    "/Applications/Xcode-beta.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool"
-  )
+  # Don't use `command -v ictool`: /usr/bin/ictool is an xcode-select shim that
+  # fails unless full Xcode is the active developer dir. Use the real binary
+  # inside Icon Composer.app (standalone download or bundled with Xcode).
+  local -a ictool_candidates=()
+  [[ -n "$MACOS_ICON_ICTOOL" ]] && ictool_candidates+=("$MACOS_ICON_ICTOOL")
+  local app_dir
+  for app_dir in "$HOME/Applications" /Applications; do
+    ictool_candidates+=(
+      "$app_dir/Icon Composer.app/Contents/Executables/ictool"
+      "$app_dir/Xcode.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool"
+      "$app_dir/Xcode-beta.app/Contents/Applications/Icon Composer.app/Contents/Executables/ictool"
+    )
+  done
+  local dev_dir="$(xcode-select -p 2>/dev/null)"
+  [[ "$dev_dir" == */Contents/Developer ]] &&
+    ictool_candidates+=("${dev_dir:h}/Applications/Icon Composer.app/Contents/Executables/ictool")
+  local app_path
+  for app_path in ${(f)"$(mdfind "kMDItemCFBundleIdentifier == 'com.apple.IconComposer'" 2>/dev/null)"}; do
+    ictool_candidates+=("$app_path/Contents/Executables/ictool")
+  done
   local ictool=""
   local candidate
   for candidate in "${ictool_candidates[@]}"; do
@@ -106,7 +121,7 @@ macos-icon() {
   done
 
   if [[ -z "$ictool" ]]; then
-    echo "macos-icon: Icon Composer ictool not found" >&2
+    echo "macos-icon: Icon Composer ictool not found (install Icon Composer.app in /Applications or ~/Applications, or set MACOS_ICON_ICTOOL)" >&2
     return 1
   fi
 
