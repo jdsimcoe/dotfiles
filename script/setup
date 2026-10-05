@@ -133,10 +133,12 @@ link_path "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support
 # Ghostty custom color themes (the config's `theme =` value resolves here)
 link_path "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 
-# Pragma terminal font (custom Iosevka build; Ghostty's `font-family`)
-for font in "$REPO_ROOT"/fonts/pragma/*.ttf; do
+# Bundled fonts (Pragma, Berkeley Mono, Ranade, …) -> ~/Library/Fonts
+shopt -s nullglob
+for font in "$REPO_ROOT"/fonts/*/*.{ttf,otf}; do
   install_font "$font"
 done
+shopt -u nullglob
 
 # Karabiner-Elements
 link_path "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"

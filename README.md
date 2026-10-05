@@ -5,7 +5,7 @@ Personal machine setup split into:
 - `brew.sh` for Homebrew taps/formulae/casks
 - `.macos` for macOS system defaults/preferences
 - separate config files/directories (`.hushlogin`, `.zprofile`, `.zshrc`, `.config/starship.toml`, `.config/nvim`, `.config/ghostty/*`, `.config/karabiner/*`, `.config/zed/settings.json`)
-- `fonts/pragma` with the Pragma terminal font (custom Iosevka build) installed by setup
+- `fonts/` with Pragma, Berkeley Mono, and Ranade, all installed by setup
 - `script/setup` as the master bootstrap script for new machines
 - `script/clean` as an optional manual maintenance/cleanup script (not run by setup)
 - `script/icons` as a persistent custom-app-icon registry with a LaunchAgent that re-applies them
@@ -22,7 +22,7 @@ This will:
 
 - back up existing files into `~/.dotfiles-backups/<timestamp>/`
 - symlink repo files into place (`.hushlogin`, `.zprofile`, `.zshrc`, Starship, Neovim, Ghostty config and themes, Karabiner, Zed settings)
-- copy the Pragma font into `~/Library/Fonts/`
+- copy bundled fonts (Pragma, Berkeley Mono, Ranade) into `~/Library/Fonts/`
 - set global Git defaults like `push.autoSetupRemote=true`, `user.email`, and `user.name`
 - switch your login shell to zsh
 - run `brew.sh` (unless you pass `--skip-brew`), which also installs Node.js LTS through fnm
@@ -46,10 +46,11 @@ Validate that your managed files are still symlinked back to the repo:
 The Ghostty config is symlinked to `~/Library/Application Support/com.mitchellh.ghostty/config`
 and custom color themes (Atom Zed Dark, Atelier Forest Dark/Light) to
 `~/.config/ghostty/themes/`, where Ghostty resolves the config's `theme =`
-value. The terminal font is Pragma, a custom Iosevka build tracked in
-[`fonts/pragma`](fonts/pragma) and copied into `~/Library/Fonts/` by setup, so
-font and colors carry over to a new machine without manual steps. Restart
-Ghostty (or reload the config) after setup to pick everything up.
+value. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
+Ranade) and are copied into `~/Library/Fonts/` by setup, so font and colors
+carry over to a new machine without manual steps. Ghostty currently uses
+`font-family = "Berkeley Mono"`. Restart Ghostty (or reload the config) after
+setup to pick everything up.
 
 #### Node.js
 
