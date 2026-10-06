@@ -216,11 +216,11 @@ Some apps (Arc, for one) rewrite their own Finder icon on launch via `NSWorkspac
 ```bash
 icons add                 # interactive: pick app, paste icon path, choose mode
 icons add Arc ~/Documents/Icons/Arc.icns
-icons add Slack ~/Documents/Icons/Slack.png --bundle
+icons add SomeNativeApp ~/Documents/Icons/App.png --bundle --yes
 icons list
 icons apply               # re-apply everything (what the LaunchAgent runs)
 icons install             # LaunchAgent: at login, every 5 min, and when /Applications or a registered app changes
 icons restore Arc / icons rm Arc / icons doctor
 ```
 
-`overlay` mode is the safe default: it sets a Finder custom icon and locks it with `chflags uchg` so the app's own `setIcon` rewrite fails (side effect: if an updater moves the old bundle to the Trash, Finder will ask before deleting the locked icon file). `bundle` mode replaces the real `.icns` inside the bundle and ad-hoc re-signs, which breaks the Developer ID signature — expect keychain/permission re-prompts and the app's updater may refuse to update, so use it only when overlay isn't enough. Non-`.icns` images (`.png`/`.jpg`/`.tiff`) are converted automatically; Icon Composer `.icon` bundles should first go through `macos-icon` to produce an `.icns`. If iru re-chowns the app back to root, run `script/chowny` and then `icons apply`.
+`overlay` mode is the safe default: it sets a Finder custom icon and locks it with `chflags uchg` so the app's own `setIcon` rewrite fails (side effect: if an updater moves the old bundle to the Trash, Finder will ask before deleting the locked icon file). `bundle` mode replaces the real `.icns` inside the bundle and ad-hoc re-signs — it's refused outright for Chromium/Electron apps (Arc, Chrome, Slack, Figma, VS Code…) because those apps bind their Keychain "Safe Storage" key to the original code signature, so a re-sign locks you out of your profile. For everything else it asks you to type `YES` (skip with `--yes`), since it breaks the Developer ID signature, may reset Keychain items and TCC permissions, and the app's updater will likely refuse updates. If a bundle-mode restore isn't enough, recovery is reinstalling the app over the top — profile data in `~/Library/Application Support` is untouched. Use bundle mode only when overlay isn't enough. Non-`.icns` images (`.png`/`.jpg`/`.tiff`) are converted automatically; Icon Composer `.icon` bundles should first go through `macos-icon` to produce an `.icns`. If iru re-chowns the app back to root, run `script/chowny` and then `icons apply`.
