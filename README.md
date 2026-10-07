@@ -132,6 +132,10 @@ slots, preserving any tint assigned by the terminal theme.
 The launcher requires OSC 4, 10, and 11 color-query support. If queries are
 unavailable, it uses the last resolved ANSIgray theme or a neutral first-run
 fallback. Plain `cliamp` uses cached colors; use `amp` to refresh them.
+`amp` also starts every session with shuffle off. cliamp saves the in-app
+shuffle toggle to `config.toml`, so without this one toggle would stick across
+launches. Toggle shuffle in the app as usual, or run `amp --shuffle` to start
+shuffled.
 `CLIAMP_CONFIG_DIR` and `XDG_CONFIG_HOME` are honored.
 
 `amp` also filters emoji from YouTube titles returned by yt-dlp. It removes
