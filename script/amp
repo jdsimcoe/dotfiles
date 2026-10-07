@@ -138,7 +138,15 @@ def main():
     if not cliamp:
         raise SystemExit("cliamp is not installed or is not on PATH.")
     control = bool(args and args[0] in SUBCOMMANDS)
-    if not control and not any(arg in ("--help", "-h", "--version", "-v", "--daemon", "-d") for arg in args):
+    info = any(arg in ("--help", "-h", "--version", "-v") for arg in args)
+    # cliamp writes the in-app shuffle toggle back to config.toml, so one toggle
+    # would make every later launch shuffle. Start unshuffled unless asked.
+    if not control and not info and not any(
+        arg in ("--shuffle", "--no-shuffle") or arg.startswith(("--shuffle=", "--no-shuffle="))
+        for arg in args
+    ):
+        args = ["--no-shuffle", *args]
+    if not control and not info and not any(arg in ("--daemon", "-d") for arg in args):
         refresh_theme()
         if not any(arg == "--start-theme" or arg.startswith("--start-theme=") for arg in args):
             args = ["--start-theme", "ANSIgray", *args]
