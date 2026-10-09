@@ -380,6 +380,21 @@ if [[ -f "$HOME/.zshrc.local" ]]; then
   source "$HOME/.zshrc.local"
 fi
 
+# Starship config: the default starship.toml uses powerline/Nerd Font glyphs,
+# which render as blanks or tofu in terminals without them (e.g. Codex's
+# built-in terminal). Use it in Ghostty or when STARSHIP_FANCY=1; otherwise
+# fall back to starship-plain.toml. STARSHIP_FANCY=0 forces plain, and an
+# already-exported STARSHIP_CONFIG wins. This runs after ~/.zshrc.local so
+# STARSHIP_FANCY can be set there; starship reads STARSHIP_CONFIG on every
+# prompt, so it is fine that this comes after `starship init` above.
+if [[ -z "$STARSHIP_CONFIG" ]]; then
+  if [[ "$STARSHIP_FANCY" != 0 && ( "$STARSHIP_FANCY" == 1 || "$TERM_PROGRAM" == ghostty || "$TERM" == xterm-ghostty ) ]]; then
+    export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+  else
+    export STARSHIP_CONFIG="$HOME/.config/starship-plain.toml"
+  fi
+fi
+
 # Added by Actual Computer installer
 export PATH="$HOME/.actual/bin:$PATH"
 
