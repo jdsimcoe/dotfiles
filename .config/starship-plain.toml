@@ -1,0 +1,45 @@
+# Plain fallback for .config/starship.toml: same colored blocks, but no
+# powerline separators or Nerd Font / Private Use Area glyphs, so it renders
+# in any terminal. Selected from .zshrc unless the terminal is known to have
+# Nerd glyphs (Ghostty) or STARSHIP_FANCY=1 is set.
+"$schema" = 'https://starship.rs/config-schema.json'
+format = "$directory$custom$git_branch$git_status"
+add_newline = false
+
+[directory]
+format = "[ $path ]($style)[$read_only]($read_only_style)"
+style = "fg:black bg:bright-purple bold"
+truncation_length = 3
+truncate_to_repo = true
+home_symbol = "~"
+read_only = " ro "
+read_only_style = "fg:black bg:bright-purple bold"
+
+[custom.end_cap]
+description = "Trailing space after $directory when not in a git repo"
+when = "dir=$PWD; while [ \"$dir\" != / ]; do [ -e \"$dir/.git\" ] && exit 1; parent=${dir%/*}; [ \"$parent\" = \"$dir\" ] && break; dir=$parent; done; exit 0"
+command = "true"
+format = " "
+
+[git_branch]
+format = "[ ↳ $branch ]($style)"
+symbol = ""
+style = "fg:bright-white bg:bright-black bold"
+
+[git_commit]
+tag_symbol = " tag "
+
+[git_status]
+format = '[ $all_status$ahead_behind ]($style) '
+style = "fg:bright-white bg:bright-black bold"
+ahead = "⇡"
+behind = "⇣"
+diverged = "⇕"
+conflicted = "="
+deleted = "✘"
+modified = "!"
+renamed = "»"
+staged = "+"
+stashed = "\\$"
+untracked = "?"
+up_to_date = ""
