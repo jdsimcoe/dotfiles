@@ -12,7 +12,7 @@ Personal machine setup split into:
 
 #### Starship prompt
 
-`.config/starship.toml` uses powerline/Nerd Font glyphs; `.config/starship-plain.toml` is the same prompt without them. `.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal that has a Nerd Font, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
+`.config/starship.toml` uses powerline/Nerd Font glyphs; `.config/starship-plain.toml` is the same prompt without them. `.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`) , macOS Terminal (`TERM_PROGRAM=Apple_Terminal`) and iTerm2 (`TERM_PROGRAM=iTerm.app`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal that has a Nerd Font, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
 
 #### New machine setup
 
