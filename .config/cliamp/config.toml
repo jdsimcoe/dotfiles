@@ -18,3 +18,8 @@ quality = "lossless"
 [ytmusic]
 cookies_from = "safari"
 expand_playlist = true
+
+[soundcloud]
+enabled = true
+user = "jdsimcoe"
+cookies_from = "safari"
