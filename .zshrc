@@ -388,7 +388,7 @@ fi
 # STARSHIP_FANCY can be set there; starship reads STARSHIP_CONFIG on every
 # prompt, so it is fine that this comes after `starship init` above.
 if [[ -z "$STARSHIP_CONFIG" ]]; then
-  if [[ "$STARSHIP_FANCY" != 0 && ( "$STARSHIP_FANCY" == 1 || "$TERM_PROGRAM" == ghostty || "$TERM_PROGRAM" == Apple_Terminal || "$TERM_PROGRAM" == iTerm.app || "$TERM" == xterm-ghostty ) ]]; then
+  if [[ "$STARSHIP_FANCY" != 0 && ( "$STARSHIP_FANCY" == 1 || "$TERM_PROGRAM" == ghostty || "$TERM_PROGRAM" == Apple_Terminal || "$TERM_PROGRAM" == iTerm.app || "$TERM_PROGRAM" == rex || "$TERM" == xterm-ghostty ) ]]; then
     export STARSHIP_CONFIG="$HOME/.config/starship.toml"
   else
     export STARSHIP_CONFIG="$HOME/.config/starship-plain.toml"
