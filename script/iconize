@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 setopt extended_glob
 
-# icon — one-word wrapper around `icons` for the common case.
+# iconize — one-word wrapper around `icons` for the common case.
 #
-#   icon Beeper          → /Applications/Beeper.app gets iCloud Drive/Icons/Beeper.icns
-#   icon "Arc" "Arc Candy"   → use a differently named icon file
+#   iconize Beeper          → /Applications/Beeper.app gets iCloud Drive/Icons/Beeper.icns
+#   iconize "Arc" "Arc Candy"   → use a differently named icon file
 #
 # Uses overlay mode (Finder custom icon, app bundle untouched) and makes sure
 # the LaunchAgent is installed so the icon comes back after app updates.
@@ -14,7 +14,7 @@ set -euo pipefail
 ICON_DIR="${ICON_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/Icons}"
 ICONS="${0:A:h}/icons"
 
-[[ $# -ge 1 ]] || { print -u2 "usage: icon <App name> [icon name]"; exit 1; }
+[[ $# -ge 1 ]] || { print -u2 "usage: iconize <App name> [icon name]"; exit 1; }
 
 app_name="$1"
 icon_name="${2:-$1}"
