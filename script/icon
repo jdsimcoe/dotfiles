@@ -1,0 +1,34 @@
+#!/usr/bin/env zsh
+setopt extended_glob
+
+# icon — one-word wrapper around `icons` for the common case.
+#
+#   icon Beeper          → /Applications/Beeper.app gets iCloud Drive/Icons/Beeper.icns
+#   icon "Arc" "Arc Candy"   → use a differently named icon file
+#
+# Uses overlay mode (Finder custom icon, app bundle untouched) and makes sure
+# the LaunchAgent is installed so the icon comes back after app updates.
+
+set -euo pipefail
+
+ICON_DIR="${ICON_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/Icons}"
+ICONS="${0:A:h}/icons"
+
+[[ $# -ge 1 ]] || { print -u2 "usage: icon <App name> [icon name]"; exit 1; }
+
+app_name="$1"
+icon_name="${2:-$1}"
+
+icon=""
+for ext in icns png; do
+  [[ -f "$ICON_DIR/$icon_name.$ext" ]] && { icon="$ICON_DIR/$icon_name.$ext"; break; }
+done
+if [[ -z "$icon" ]]; then
+  # case-insensitive fallback
+  match=( "$ICON_DIR"/(#i)"$icon_name".(icns|png)(N) )
+  (( ${#match} )) && icon="${match[1]}"
+fi
+[[ -n "$icon" ]] || { print -u2 "no icon named \"$icon_name\" (.icns/.png) in $ICON_DIR"; exit 1; }
+
+"$ICONS" add "$app_name" "$icon" --overlay
+[[ -f "$HOME/Library/LaunchAgents/com.jdsimcoe.icons.plist" ]] || "$ICONS" install

@@ -221,6 +221,8 @@ Edit the `default_apps` array at the top of the script to change the defaults. i
 
 Some apps (Arc, for one) rewrite their own Finder icon on launch via `NSWorkspace.setIcon`, and Sparkle auto-updates replace the whole bundle — so one-off icon changes don't stick. `script/icons` keeps a registry in `~/.config/icons/` (icon copies in `store/`, originals in `backup/`, applied-state hashes in `state/`) and a LaunchAgent that re-applies them at login, every 5 minutes, and whenever `/Applications` or a registered app changes.
 
+Quick path: `icon Beeper` pairs `/Applications/Beeper.app` with `Beeper.icns` (or `.png`) from iCloud Drive's `Icons/` folder, in overlay mode, and installs the LaunchAgent if needed. Use `icon Arc "Arc Candy"` when the icon file has a different name.
+
 ```bash
 icons add                 # interactive: pick app, paste icon path, choose mode
 icons add Arc ~/Documents/Icons/Arc.icns
