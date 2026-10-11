@@ -199,6 +199,30 @@
                                     "basic.to_if_alone_timeout_milliseconds": 400,
                                     "basic.to_if_held_down_threshold_milliseconds": 600
                                 }
+                            },
+                            {
+                                "type": "basic",
+                                "from": {
+                                    "key_code": "power"
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "q",
+                                        "modifiers": [
+                                            "left_control",
+                                            "left_command"
+                                        ]
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "key_code": "power"
+                                    }
+                                ],
+                                "parameters": {
+                                    "basic.to_if_alone_timeout_milliseconds": 400,
+                                    "basic.to_if_held_down_threshold_milliseconds": 600
+                                }
                             }
                         ]
                     }
