@@ -79,8 +79,27 @@
                         ]
                     },
                     {
-                        "description": "Siri Remote ring: Tab in power dialog, arrows in slides/browsers, prev/next track elsewhere",
+                        "description": "Siri Remote ring: Tab + Play=select in power dialog, arrows in slides/browsers, prev/next track elsewhere",
                         "manipulators": [
+                            {
+                                "type": "basic",
+                                "from": {
+                                    "consumer_key_code": "play_or_pause"
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "spacebar"
+                                    }
+                                ],
+                                "conditions": [
+                                    {
+                                        "type": "frontmost_application_if",
+                                        "bundle_identifiers": [
+                                            "^com\\.apple\\.loginwindow$"
+                                        ]
+                                    }
+                                ]
+                            },
                             {
                                 "type": "basic",
                                 "from": {
