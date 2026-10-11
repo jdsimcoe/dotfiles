@@ -156,6 +156,22 @@
                                 ]
                             }
                         ]
+                    },
+                    {
+                        "description": "Siri Remote mic button: F24 (bind it anywhere)",
+                        "manipulators": [
+                            {
+                                "type": "basic",
+                                "from": {
+                                    "consumer_key_code": "microphone"
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "f24"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             },
