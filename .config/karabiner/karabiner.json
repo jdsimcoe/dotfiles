@@ -218,7 +218,7 @@
                         ]
                     },
                     {
-                        "description": "Siri Remote mic button: F24 (bind it anywhere)",
+                        "description": "Siri Remote mic button: Hyper+Z (Ctrl+Opt+Cmd+Shift+Z)",
                         "manipulators": [
                             {
                                 "type": "basic",
@@ -227,7 +227,13 @@
                                 },
                                 "to": [
                                     {
-                                        "key_code": "f24"
+                                        "key_code": "z",
+                                        "modifiers": [
+                                            "left_control",
+                                            "left_option",
+                                            "left_command",
+                                            "left_shift"
+                                        ]
                                     }
                                 ]
                             }
