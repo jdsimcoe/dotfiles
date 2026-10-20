@@ -198,10 +198,10 @@ defaults write com.apple.dock enable-spring-load-actions-on-all-items -bool true
 # Show indicator lights for open applications in the Dock
 defaults write com.apple.dock show-process-indicators -bool true
 
-# Wipe all (default) app icons from the Dock
-# This is only really useful when setting up a new Mac, or if you don’t use
-# the Dock to launch apps.
+# Wipe all default app icons and folders from the Dock on a fresh Mac.
+# Pin apps by hand afterwards; recently opened apps get their own section.
 defaults write com.apple.dock persistent-apps -array
+defaults write com.apple.dock persistent-others -array
 
 # Show only open applications in the Dock
 #defaults write com.apple.dock static-only -bool true
@@ -227,8 +227,8 @@ defaults write com.apple.dock autohide -bool true
 # Make Dock icons of hidden applications translucent
 defaults write com.apple.dock showhidden -bool true
 
-# Don’t show recent applications in Dock
-defaults write com.apple.dock show-recents -bool false
+# Show recently opened apps in their own Dock section
+defaults write com.apple.dock show-recents -bool true
 
 ###############################################################################
 # Safari & WebKit                                                             #

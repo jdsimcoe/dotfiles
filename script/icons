@@ -15,6 +15,7 @@
 #   icons doctor
 
 set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"  # launchd has a minimal PATH
 
 ICONS_HOME="${ICONS_HOME:-$HOME/.config/icons}"
 APPS_DIR="${ICONS_APPS_DIR:-/Applications}"

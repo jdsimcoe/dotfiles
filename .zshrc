@@ -64,7 +64,7 @@ macos-icon() {
     return 1
   fi
 
-  local icon_dir="${MACOS_ICON_DIR:-$HOME/Documents/Icons}"
+  local icon_dir="${MACOS_ICON_DIR:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/Icons}"
   local input="$1"
   local source
 
