@@ -81,6 +81,10 @@ ANSI colors, matching the Starship prompt. The font is `font-family = "Paper Mon
 (ss03, size 16, cell height +4, width -5%), which is **not** bundled here: install
 it separately. Its weight axis is pinned explicitly with `font-variation*`
 (`wght=400` regular/italic, `wght=700` bold/bold-italic).
+`window-colorspace = display-p3` (macOS only) makes Ghostty interpret the theme's
+hex values (and 24-bit prompt colors) as Display P3 instead of the default sRGB,
+so on a wide-gamut display they render more saturated, closer to the wide-gamut
+`oklch()` variants vercel.com serves, but no longer the exact sRGB hex.
 
 Reload with Cmd+Shift+, (`reload_config`). Colors update in open windows; font
 settings may only apply to new windows/tabs, so open one (or restart Ghostty)

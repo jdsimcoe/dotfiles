@@ -1,6 +1,7 @@
 # Ghostty
 auto-update-channel = stable
 theme = Geist Dark
+window-colorspace = display-p3
 
 # Font
 font-family = "Paper Mono"
