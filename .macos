@@ -198,10 +198,11 @@ defaults write com.apple.dock enable-spring-load-actions-on-all-items -bool true
 # Show indicator lights for open applications in the Dock
 defaults write com.apple.dock show-process-indicators -bool true
 
-# Wipe all default app icons and folders from the Dock on a fresh Mac.
-# Pin apps by hand afterwards; recently opened apps get their own section.
-defaults write com.apple.dock persistent-apps -array
-defaults write com.apple.dock persistent-others -array
+# Leave pinned apps and folders alone so the Dock keeps its pinned section.
+# (Previously this wiped persistent-apps/persistent-others on every run,
+# which left the Dock showing only running + recent apps.)
+#defaults write com.apple.dock persistent-apps -array
+#defaults write com.apple.dock persistent-others -array
 
 # Show only open applications in the Dock
 #defaults write com.apple.dock static-only -bool true
