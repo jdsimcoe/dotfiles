@@ -27,11 +27,11 @@ dotfiles main MERGING = ▲  merge with conflicts
 | --- | --- | --- |
 | `▲` marker | `#EDEDED` | `gray-1000` |
 | Branch / commit | `#A1A1A1` | `gray-900` |
-| Directory | `#50E3C2` | `--geist-cyan` |
+| Directory (bold) | `#50E3C2` | `--geist-cyan` |
 | Dirty / in-progress | `#F2A20D` | `amber-900` |
 | Failure `▲` and exit code | `#FF6166` | `red-900` |
 
-`.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory cyan, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
+`.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory bold cyan, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
 
 `.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`), macOS Terminal (`TERM_PROGRAM=Apple_Terminal`), iTerm2 (`TERM_PROGRAM=iTerm.app`) and Rex (`TERM_PROGRAM=rex`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal with 24-bit color, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
 
@@ -69,13 +69,22 @@ Validate that your managed files are still symlinked back to the repo:
 #### Ghostty terminal
 
 The Ghostty config is symlinked to `~/Library/Application Support/com.mitchellh.ghostty/config`
-and custom color themes (Atom Zed Dark, Atelier Forest Dark/Light) to
+and custom color themes (Geist Dark, Atom Zed Dark, Atelier Forest Dark/Light) to
 `~/.config/ghostty/themes/`, where Ghostty resolves the config's `theme =`
 value. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
-Ranade) and are copied into `~/Library/Fonts/` by setup, so font and colors
-carry over to a new machine without manual steps. Ghostty currently uses
-`font-family = "Berkeley Mono"`. Restart Ghostty (or reload the config) after
-setup to pick everything up.
+Ranade) and are copied into `~/Library/Fonts/` by setup.
+
+Ghostty uses `theme = Geist Dark`, a Geist-inspired (not official Vercel) color-only
+theme: `#0A0A0A` background, `#EDEDED` foreground, `#A1A1A1` bright black and
+selection, and the Geist dark-theme red/green/amber/blue/purple/cyan for the
+ANSI colors, matching the Starship prompt. The font is `font-family = "Paper Mono"`
+(ss03, size 16, cell height +4, width -5%), which is **not** bundled here: install
+it separately. Its weight axis is pinned explicitly with `font-variation*`
+(`wght=400` regular/italic, `wght=700` bold/bold-italic).
+
+Reload with Cmd+Shift+, (`reload_config`). Colors update in open windows; font
+settings may only apply to new windows/tabs, so open one (or restart Ghostty)
+to check weights.
 
 #### Node.js
 

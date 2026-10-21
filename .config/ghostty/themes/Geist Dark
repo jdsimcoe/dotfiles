@@ -1,0 +1,32 @@
+# Geist Dark
+# Geist-inspired, not an official Vercel theme. Colors from Geist dark-theme
+# tokens shared by vercel.com/geist, Vercel Labs json-render code samples and
+# the rendered AI Gateway docs code blocks:
+#   background-100 / gray-1000 / gray-900, ds red/green/amber/blue/purple/pink-900,
+#   and --geist-cyan (#50E3C2) for cyan.
+
+palette = 0=#0A0A0A
+palette = 1=#FF6166
+palette = 2=#62C073
+palette = 3=#F2A20D
+palette = 4=#52A8FF
+palette = 5=#BF7AF0
+palette = 6=#50E3C2
+palette = 7=#EDEDED
+palette = 8=#A1A1A1
+palette = 9=#FF6166
+palette = 10=#62C073
+palette = 11=#F2A20D
+palette = 12=#52A8FF
+palette = 13=#F75F8F
+palette = 14=#50E3C2
+palette = 15=#EDEDED
+
+background = #0A0A0A
+foreground = #EDEDED
+
+cursor-color = #EDEDED
+cursor-text = #0A0A0A
+
+selection-background = #A1A1A1
+selection-foreground = #0A0A0A
