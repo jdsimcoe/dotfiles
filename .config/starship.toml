@@ -1,5 +1,14 @@
 "$schema" = 'https://starship.rs/config-schema.json'
-format = "$directory$custom$git_branch$git_status"
+# Minimal Vercel/Geist-inspired prompt, e.g.  dotfiles main !? ▲
+# No background blocks: the terminal background shows through. Colors are
+# 24-bit hex taken from Geist's dark-theme tokens (see README):
+#   #EDEDED  gray-1000   ▲ marker (primary text)
+#   #A1A1A1  gray-900    Git branch / commit (secondary metadata)
+#   #50E3C2  geist-cyan  directory, the one accent
+#   #F2A20D  amber-900   dirty / in-progress Git state
+#   #FF6166  red-900     failed command: ▲ and exit code
+# starship-plain.toml is the same layout in ASCII and 16 ANSI colors.
+format = "$directory$git_branch$git_commit$git_state$git_status$status$character"
 add_newline = false
 
 [aws]
@@ -13,6 +22,12 @@ symbol = " "
 
 [c]
 symbol = " "
+
+[character]
+format = "$symbol "
+success_symbol = "[▲](fg:#EDEDED)"
+error_symbol = "[▲](fg:#FF6166)"
+vimcmd_symbol = "[▼](fg:#EDEDED)"
 
 [cpp]
 symbol = " "
@@ -33,20 +48,13 @@ symbol = " "
 symbol = " "
 
 [directory]
-format = "[ $path ]($style)[$read_only]($read_only_style)"
-style = "fg:black bg:bright-purple bold"
+format = "[$path]($style)[$read_only]($read_only_style) "
+style = "fg:#50E3C2"
 truncation_length = 3
 truncate_to_repo = true
 home_symbol = "~"
-read_only = " 󰌾 "
-read_only_style = "fg:black bg:bright-purple bold"
-
-[custom.end_cap]
-description = "Purple caret after $directory when not in a git repo"
-when = "dir=$PWD; while [ \"$dir\" != / ]; do [ -e \"$dir/.git\" ] && exit 1; parent=${dir%/*}; [ \"$parent\" = \"$dir\" ] && break; dir=$parent; done; exit 0"
-command = "true"
-format = "[]($style)"
-style = "fg:bright-purple"
+read_only = " 󰌾"
+read_only_style = "fg:#A1A1A1"
 
 [docker_context]
 symbol = " "
@@ -70,16 +78,22 @@ symbol = " "
 symbol = " "
 
 [git_branch]
-format = "[](fg:bright-purple bg:bright-black)[ ↳ $branch ]($style)"
-symbol = ""
-style = "fg:bright-white bg:bright-black bold"
+format = "[$branch]($style) "
+only_attached = true
+style = "fg:#A1A1A1"
 
 [git_commit]
+format = "[$hash$tag]($style) "
+style = "fg:#A1A1A1"
 tag_symbol = '  '
 
+[git_state]
+format = "[$state( $progress_current/$progress_total)]($style) "
+style = "fg:#F2A20D"
+
 [git_status]
-format = '[ $all_status$ahead_behind ]($style)[](fg:bright-black)'
-style = "fg:bright-white bg:bright-black bold"
+format = "([$all_status$ahead_behind]($style) )"
+style = "fg:#F2A20D"
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇕"
@@ -225,6 +239,9 @@ symbol = "󱘗 "
 symbol = " "
 
 [status]
+disabled = false
+format = "[$status]($style) "
+style = "fg:#FF6166"
 symbol = " "
 
 [swift]

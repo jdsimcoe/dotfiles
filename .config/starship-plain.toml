@@ -1,45 +1,62 @@
-# Plain fallback for .config/starship.toml: same colored blocks, but no
-# powerline separators or Nerd Font / Private Use Area glyphs, so it renders
-# in any terminal. Selected from .zshrc unless the terminal is known to have
-# Nerd glyphs (Ghostty) or STARSHIP_FANCY=1 is set.
+# Plain fallback for .config/starship.toml: the same minimal layout, but ASCII
+# only and the 16 named ANSI colors, so it renders in any terminal and follows
+# that terminal's own palette (light or dark). Selected from .zshrc unless the
+# terminal is one of the known fancy ones (Ghostty, Terminal, iTerm2, Rex) or
+# STARSHIP_FANCY=1 is set.
+#
+# ASCII substitutions for the fancy glyphs:
+#   ▲ marker -> >      ▼ vi-cmd -> <      read-only lock -> " ro"
+#   ⇡ ahead  -> ^      ⇣ behind -> v      ⇕ diverged -> ^v
+#   ✘ deleted -> x     » renamed -> r     tag glyph -> " tag "
+# Colors: directory cyan, dirty/in-progress yellow, failure red. Branch and
+# marker use the terminal foreground: ANSI gray (7/8) contrast varies too much
+# between palettes to carry readable text.
 "$schema" = 'https://starship.rs/config-schema.json'
-format = "$directory$custom$git_branch$git_status"
+format = "$directory$git_branch$git_commit$git_state$git_status$status$character"
 add_newline = false
 
+[character]
+format = "$symbol "
+success_symbol = ">"
+error_symbol = "[>](red)"
+vimcmd_symbol = "<"
+
 [directory]
-format = "[ $path ]($style)[$read_only]($read_only_style)"
-style = "fg:black bg:bright-purple bold"
+format = "[$path]($style)$read_only "
+style = "cyan"
 truncation_length = 3
 truncate_to_repo = true
 home_symbol = "~"
-read_only = " ro "
-read_only_style = "fg:black bg:bright-purple bold"
-
-[custom.end_cap]
-description = "Trailing space after $directory when not in a git repo"
-when = "dir=$PWD; while [ \"$dir\" != / ]; do [ -e \"$dir/.git\" ] && exit 1; parent=${dir%/*}; [ \"$parent\" = \"$dir\" ] && break; dir=$parent; done; exit 0"
-command = "true"
-format = " "
+read_only = " ro"
 
 [git_branch]
-format = "[ ↳ $branch ]($style)"
-symbol = ""
-style = "fg:bright-white bg:bright-black bold"
+format = "$branch "
+only_attached = true
 
 [git_commit]
+format = "$hash$tag "
 tag_symbol = " tag "
 
+[git_state]
+format = "[$state( $progress_current/$progress_total)]($style) "
+style = "yellow"
+
 [git_status]
-format = '[ $all_status$ahead_behind ]($style) '
-style = "fg:bright-white bg:bright-black bold"
-ahead = "⇡"
-behind = "⇣"
-diverged = "⇕"
+format = "([$all_status$ahead_behind]($style) )"
+style = "yellow"
+ahead = "^"
+behind = "v"
+diverged = "^v"
 conflicted = "="
-deleted = "✘"
+deleted = "x"
 modified = "!"
-renamed = "»"
+renamed = "r"
 staged = "+"
 stashed = "\\$"
 untracked = "?"
 up_to_date = ""
+
+[status]
+disabled = false
+format = "[$status]($style) "
+style = "red"
