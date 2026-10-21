@@ -8,7 +8,7 @@
 #   ▲ marker -> >      ▼ vi-cmd -> <      read-only lock -> " ro"
 #   ⇡ ahead  -> ^      ⇣ behind -> v      ⇕ diverged -> ^v
 #   ✘ deleted -> x     » renamed -> r     tag glyph -> " tag "
-# Colors: directory bold cyan, dirty/in-progress yellow, failure red. Branch and
+# Colors: directory bold purple, dirty/in-progress yellow, failure red. Branch and
 # marker use the terminal foreground: ANSI gray (7/8) contrast varies too much
 # between palettes to carry readable text.
 "$schema" = 'https://starship.rs/config-schema.json'
@@ -23,7 +23,7 @@ vimcmd_symbol = "<"
 
 [directory]
 format = "[$path]($style)$read_only "
-style = "cyan bold"
+style = "purple bold"
 truncation_length = 3
 truncate_to_repo = true
 home_symbol = "~"
