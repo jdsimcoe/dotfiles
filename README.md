@@ -12,7 +12,28 @@ Personal machine setup split into:
 
 #### Starship prompt
 
-`.config/starship.toml` uses powerline/Nerd Font glyphs; `.config/starship-plain.toml` is the same prompt without them. `.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`), macOS Terminal (`TERM_PROGRAM=Apple_Terminal`), iTerm2 (`TERM_PROGRAM=iTerm.app`) and Rex (`TERM_PROGRAM=rex`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal that has a Nerd Font, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
+A minimal Vercel/Geist-inspired prompt: directory, Git branch (or commit when detached), Git state and dirty markers, the last exit code when non-zero, then `▲`. No background blocks; the terminal background shows through.
+
+```text
+dotfiles main ▲            clean
+dotfiles main !+? ▲        modified, staged, untracked
+dotfiles main 1 ▲          last command failed (▲ turns red)
+dotfiles main MERGING = ▲  merge with conflicts
+```
+
+`.config/starship.toml` uses 24-bit color and Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs). Colors are a design interpretation of Geist dark-theme tokens, not an official Vercel terminal theme:
+
+| Role | Color | Token |
+| --- | --- | --- |
+| `▲` marker | `#EDEDED` | `gray-1000` |
+| Branch / commit | `#A1A1A1` | `gray-900` |
+| Directory | `#50E3C2` | `--geist-cyan` |
+| Dirty / in-progress | `#F2A20D` | `amber-900` |
+| Failure `▲` and exit code | `#FF6166` | `red-900` |
+
+`.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory cyan, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
+
+`.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`), macOS Terminal (`TERM_PROGRAM=Apple_Terminal`), iTerm2 (`TERM_PROGRAM=iTerm.app`) and Rex (`TERM_PROGRAM=rex`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal with 24-bit color, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
 
 #### New machine setup
 
