@@ -4,7 +4,7 @@
 # 24-bit hex taken from Geist's dark-theme tokens (see README):
 #   #EDEDED  gray-1000   ▲ marker (primary text)
 #   #A1A1A1  gray-900    Git branch / commit (secondary metadata)
-#   #50E3C2  geist-cyan  directory (bold), the one accent
+#   #BF7AF0  purple-900  directory (bold), the one accent
 #   #F2A20D  amber-900   dirty / in-progress Git state
 #   #FF6166  red-900     failed command: ▲ and exit code
 # starship-plain.toml is the same layout in ASCII and 16 ANSI colors.
@@ -49,7 +49,7 @@ symbol = " "
 
 [directory]
 format = "[$path]($style)[$read_only]($read_only_style) "
-style = "fg:#50E3C2 bold"
+style = "fg:#BF7AF0 bold"
 truncation_length = 3
 truncate_to_repo = true
 home_symbol = "~"

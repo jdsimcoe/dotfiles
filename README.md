@@ -27,11 +27,11 @@ dotfiles main MERGING = ▲  merge with conflicts
 | --- | --- | --- |
 | `▲` marker | `#EDEDED` | `gray-1000` |
 | Branch / commit | `#A1A1A1` | `gray-900` |
-| Directory (bold) | `#50E3C2` | `--geist-cyan` |
+| Directory (bold) | `#BF7AF0` | `purple-900` |
 | Dirty / in-progress | `#F2A20D` | `amber-900` |
 | Failure `▲` and exit code | `#FF6166` | `red-900` |
 
-`.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory bold cyan, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
+`.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory bold purple, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
 
 `.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`), macOS Terminal (`TERM_PROGRAM=Apple_Terminal`), iTerm2 (`TERM_PROGRAM=iTerm.app`) and Rex (`TERM_PROGRAM=rex`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal with 24-bit color, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
 
