@@ -23,5 +23,10 @@ window-padding-x = 6
 window-padding-y = 4
 window-padding-balance = true
 
+# Cursor
+cursor-style = block
+cursor-style-blink = true
+shell-integration-features = no-cursor
+
 # Input
 keybind = shift+enter=text:\n
