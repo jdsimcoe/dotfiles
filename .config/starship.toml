@@ -3,14 +3,16 @@
 # No background blocks: the terminal background shows through. Colors are
 # named ANSI colors, so they come from the terminal theme and switch with it
 # (e.g. vercel-dark / vercel-light from vercel.com/geist/terminal):
-#   green    ▲ marker, last command succeeded (bold)
+#   default  ▲ marker, last command succeeded (bold terminal foreground)
+#   green    ▲ marker, one prompt after a git pull/push/fetch leaves HEAD at
+#            its upstream (bold; set by .zshrc)
 #   red      ▲ marker, last command failed (bold), and its exit code
 #   default  ▼ vi command-mode marker (terminal foreground)
 #   white    Git branch / commit, read-only lock (ANSI 7, secondary gray)
 #   purple   directory (bold), the one accent
 #   yellow   dirty / in-progress Git state
 # starship-plain.toml is the same layout in ASCII and 16 ANSI colors.
-format = "$directory$git_branch$git_commit$git_state$git_status$status$character"
+format = "$directory$git_branch$git_commit$git_state$git_status$status${env_var.STARSHIP_TRIANGLE_SYNCED}${env_var.STARSHIP_TRIANGLE_OK}$character"
 add_newline = false
 
 [aws]
@@ -25,11 +27,21 @@ symbol = " "
 [c]
 symbol = " "
 
+# The success ▲ comes from the env_var modules below, set by .zshrc's
+# _dotfiles_prompt_precmd; character only draws the failure ▲ and vi-mode ▼.
 [character]
-format = "$symbol "
-success_symbol = "[▲](bold green)"
-error_symbol = "[▲](bold red)"
-vimcmd_symbol = "▼"
+format = "$symbol"
+success_symbol = ""
+error_symbol = "[▲](bold red) "
+vimcmd_symbol = "▼ "
+
+[env_var.STARSHIP_TRIANGLE_OK]
+format = "[▲]($style) "
+style = "bold"
+
+[env_var.STARSHIP_TRIANGLE_SYNCED]
+format = "[▲]($style) "
+style = "bold green"
 
 [cpp]
 symbol = " "

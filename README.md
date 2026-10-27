@@ -17,15 +17,17 @@ A minimal Vercel/Geist-inspired prompt: directory, Git branch (or commit when de
 ```text
 dotfiles main ▲            clean
 dotfiles main !+? ▲        modified, staged, untracked
-dotfiles main 1 ▲          last command failed (▲ turns red, green otherwise)
+dotfiles main 1 ▲          last command failed (▲ turns red, white otherwise)
+dotfiles main ▲            just pulled/pushed/fetched and in sync (green, one prompt)
 dotfiles main MERGING = ▲  merge with conflicts
 ```
 
-`.config/starship.toml` uses Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs) and only named ANSI colors, so every color comes from the terminal theme and switches with it (e.g. `vercel-dark` / `vercel-light`). The `▲` follows Vercel's official [terminal setup](https://vercel.com/geist/terminal): `bold green` after a successful command, `bold red` after a failed one (bold is not brightened). Hex values below are the Vercel Dark / Vercel Light palette entries:
+`.config/starship.toml` uses Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs) and only named ANSI colors, so every color comes from the terminal theme and switches with it (e.g. `vercel-dark` / `vercel-light`). The `▲` is bold in the terminal foreground (white on Vercel Dark) after a successful command and `bold red` after a failed one, as in Vercel's official [terminal setup](https://vercel.com/geist/terminal) but without its green success color (bold is not brightened). Hex values below are the Vercel Dark / Vercel Light palette entries:
 
 | Role | Color | Vercel Dark / Light |
 | --- | --- | --- |
-| `▲` marker, success | `bold green` (2) | `#63C174` / `#18703A` |
+| `▲` marker, success | `bold` terminal foreground | `#EDEDED` / `#24292F` |
+| `▲` marker, right after a successful `git pull` / `push` / `fetch` (or `gcp`) leaves `HEAD` at its upstream; one prompt only, set by `.zshrc` | `bold green` (2) | `#63C174` / `#18703A` |
 | `▲` marker and exit code, failure | `bold red` / `red` (1) | `#E5484D` / `#CF2F36` |
 | `▼` vi command mode | terminal foreground | `#EDEDED` / `#24292F` |
 | Branch / commit, read-only lock | `white` (7) | `#A0A0A0` / `#4F5359` |

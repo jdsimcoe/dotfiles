@@ -375,6 +375,35 @@ fi
 
 if command -v starship >/dev/null 2>&1; then
   eval "$(starship init zsh)"
+
+  # Prompt ▲ color for starship.toml: green for one prompt after a successful
+  # git pull/push/fetch (or gcp) that leaves HEAD equal to its upstream, white
+  # after any other success; on failure starship's character module draws it
+  # red. Registered after starship's precmd so STARSHIP_CMD_STATUS is set.
+  _dotfiles_prompt_preexec() {
+    if [[ "$3" =~ '(^|[;&|[:space:]])(git[[:space:]]+(pull|push|fetch)|gcp)([[:space:]]|$)' ]]; then
+      _dotfiles_git_sync=1
+    else
+      unset _dotfiles_git_sync
+    fi
+  }
+  _dotfiles_prompt_precmd() {
+    local head upstream
+    unset STARSHIP_TRIANGLE_OK STARSHIP_TRIANGLE_SYNCED
+    if [[ -z "$STARSHIP_CMD_STATUS" || "$STARSHIP_CMD_STATUS" == 0 ]]; then
+      if [[ -n "$_dotfiles_git_sync" ]] &&
+        head="$(git rev-parse -q --verify HEAD 2>/dev/null)" &&
+        upstream="$(git rev-parse -q --verify '@{upstream}' 2>/dev/null)" &&
+        [[ "$head" == "$upstream" ]]; then
+        export STARSHIP_TRIANGLE_SYNCED=1
+      else
+        export STARSHIP_TRIANGLE_OK=1
+      fi
+    fi
+    unset _dotfiles_git_sync
+  }
+  add-zsh-hook preexec _dotfiles_prompt_preexec
+  add-zsh-hook precmd _dotfiles_prompt_precmd
 fi
 
 if [[ -f "$HOME/.zshrc.local" ]]; then
