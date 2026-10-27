@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Download Vercel's official Ghostty themes (vercel.com/geist/terminal) into
+# .config/ghostty/themes, which setup links to ~/.config/ghostty/themes.
+# A download only replaces the committed copy if it parses as a Ghostty theme,
+# so an offline run or a changed URL keeps the current files.
+#
+# Usage: script/update-vercel-themes
+#   VERCEL_THEME_BASE_URL  override the download base URL
+#   VERCEL_THEMES_DIR      override the destination directory
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BASE_URL="${VERCEL_THEME_BASE_URL:-https://vercel.com/geist/terminal/}"
+THEMES_DIR="${VERCEL_THEMES_DIR:-$REPO_ROOT/.config/ghostty/themes}"
+THEMES=(vercel-dark.ghostty vercel-light.ghostty)
+
+log() {
+  printf '%s\n' "$*"
+}
+
+is_ghostty_theme() {
+  local file="$1"
+  local index
+
+  grep -Eq '^background = #[0-9A-Fa-f]{6}$' "$file" || return 1
+  grep -Eq '^foreground = #[0-9A-Fa-f]{6}$' "$file" || return 1
+  for index in $(seq 0 15); do
+    grep -Eq "^palette = ${index}=#[0-9A-Fa-f]{6}$" "$file" || return 1
+  done
+  # Every other line is blank, a comment, or a `key = value` setting.
+  ! grep -Evq '^(#.*|[a-z-]+ = [^<>]+|)$' "$file"
+}
+
+mkdir -p "$THEMES_DIR"
+status=0
+
+for theme in "${THEMES[@]}"; do
+  target="$THEMES_DIR/$theme"
+  tmp="$(mktemp "$THEMES_DIR/.${theme}.XXXXXX")"
+
+  if ! curl -fsSL --retry 2 --max-time 20 -o "$tmp" "${BASE_URL}${theme}"; then
+    rm -f "$tmp"
+    log "warn  $theme: download failed, keeping current file"
+    status=1
+    continue
+  fi
+
+  if ! is_ghostty_theme "$tmp"; then
+    rm -f "$tmp"
+    log "warn  $theme: not a valid Ghostty theme, keeping current file"
+    status=1
+    continue
+  fi
+
+  if [[ -f "$target" ]] && cmp -s "$tmp" "$target"; then
+    rm -f "$tmp"
+    log "skip  $theme (unchanged)"
+    continue
+  fi
+
+  chmod 644 "$tmp"
+  mv "$tmp" "$target"
+  log "theme $target"
+done
+
+exit "$status"

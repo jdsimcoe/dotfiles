@@ -58,6 +58,7 @@ FORMULAE=(
 )
 
 CASKS=(
+  "font-geist-mono-nerd-font"
   "font-monaspace"
 )
 

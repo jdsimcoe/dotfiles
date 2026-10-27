@@ -17,19 +17,20 @@ A minimal Vercel/Geist-inspired prompt: directory, Git branch (or commit when de
 ```text
 dotfiles main ▲            clean
 dotfiles main !+? ▲        modified, staged, untracked
-dotfiles main 1 ▲          last command failed (▲ turns red)
+dotfiles main 1 ▲          last command failed (▲ turns red, green otherwise)
 dotfiles main MERGING = ▲  merge with conflicts
 ```
 
-`.config/starship.toml` uses 24-bit color and Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs). Colors are a design interpretation of Geist dark-theme tokens, not an official Vercel terminal theme:
+`.config/starship.toml` uses 24-bit color and Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs). The `▲` follows Vercel's official [terminal setup](https://vercel.com/geist/terminal): ANSI `bold green` after a successful command and `bold red` after a failed one, so its exact shade comes from the Ghostty theme (bold is not brightened). The other colors are a design interpretation of Geist dark-theme tokens:
 
 | Role | Color | Token |
 | --- | --- | --- |
-| `▲` marker | `#EDEDED` | `gray-1000` |
+| `▲` marker, success | ANSI `bold green` | theme green |
+| `▲` marker, failure | ANSI `bold red` | theme red |
 | Branch / commit | `#A1A1A1` | `gray-900` |
 | Directory (bold) | `#BF7AF0` | `purple-900` |
 | Dirty / in-progress | `#F2A20D` | `amber-900` |
-| Failure `▲` and exit code | `#FF6166` | `red-900` |
+| Failed command's exit code | `#FF6166` | `red-900` |
 
 `.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory bold purple, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
 
@@ -69,9 +70,17 @@ Validate that your managed files are still symlinked back to the repo:
 #### Ghostty terminal
 
 The Ghostty config is symlinked to `~/Library/Application Support/com.mitchellh.ghostty/config`
-and custom color themes (Geist Dark, Atom Zed Dark, Atelier Forest Dark/Light) to
+and custom color themes (Geist Dark, Atom Zed Dark, Atelier Forest Dark/Light,
+Vercel's official `vercel-dark.ghostty` / `vercel-light.ghostty`) to
 `~/.config/ghostty/themes/`, where Ghostty resolves the config's `theme =`
-value. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
+value. The two official Vercel themes come from
+[vercel.com/geist/terminal](https://vercel.com/geist/terminal):
+`./script/update-vercel-themes` (also run by setup) downloads them again and
+replaces the committed copies only when the download is a valid Ghostty theme,
+so `git diff` shows any upstream change. To follow the system appearance, use
+`theme = dark:vercel-dark.ghostty,light:vercel-light.ghostty`. Their Starship
+setup expects GeistMono Nerd Font Mono, which `brew.sh` installs as the
+`font-geist-mono-nerd-font` cask. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
 Ranade) and are copied into `~/Library/Fonts/` by setup.
 
 Ghostty uses `theme = Geist Dark`, a Geist-inspired (not official Vercel) color-only

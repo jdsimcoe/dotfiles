@@ -1,12 +1,15 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 # Minimal Vercel/Geist-inspired prompt, e.g.  dotfiles main !? ▲
 # No background blocks: the terminal background shows through. Colors are
-# 24-bit hex taken from Geist's dark-theme tokens (see README):
-#   #EDEDED  gray-1000   ▲ marker (primary text)
+# 24-bit hex taken from Geist's dark-theme tokens (see README), except the ▲
+# marker, which uses ANSI bold green / bold red like Vercel's official terminal
+# setup (vercel.com/geist/terminal), so it takes the Ghostty theme's colors:
+#   green    ▲ marker, last command succeeded
+#   red      ▲ marker, last command failed
 #   #A1A1A1  gray-900    Git branch / commit (secondary metadata)
 #   #BF7AF0  purple-900  directory (bold), the one accent
 #   #F2A20D  amber-900   dirty / in-progress Git state
-#   #FF6166  red-900     failed command: ▲ and exit code
+#   #FF6166  red-900     failed command's exit code
 # starship-plain.toml is the same layout in ASCII and 16 ANSI colors.
 format = "$directory$git_branch$git_commit$git_state$git_status$status$character"
 add_newline = false
@@ -25,8 +28,8 @@ symbol = " "
 
 [character]
 format = "$symbol "
-success_symbol = "[▲](fg:#EDEDED)"
-error_symbol = "[▲](fg:#FF6166)"
+success_symbol = "[▲](bold green)"
+error_symbol = "[▲](bold red)"
 vimcmd_symbol = "[▼](fg:#EDEDED)"
 
 [cpp]
