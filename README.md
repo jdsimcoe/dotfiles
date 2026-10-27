@@ -86,10 +86,12 @@ Ranade) and are copied into `~/Library/Fonts/` by setup.
 Ghostty uses `theme = Geist Dark`, a Geist-inspired (not official Vercel) color-only
 theme: `#0A0A0A` background, `#EDEDED` foreground, `#A1A1A1` bright black and
 selection, and the Geist dark-theme red/green/amber/blue/purple/cyan for the
-ANSI colors, matching the Starship prompt. The font is `font-family = "Paper Mono"`
-(ss03, size 16, cell height +4, width -5%), which is **not** bundled here: install
-it separately. Its weight axis is pinned explicitly with `font-variation*`
-(`wght=400` regular/italic, `wght=700` bold/bold-italic).
+ANSI colors, matching the Starship prompt. The Paper Mono font settings
+(`font-family = "Paper Mono"`, ss03, size 16, cell height +4, width -5%, and
+`font-variation*` weight pins `wght=400` regular/italic, `wght=700`
+bold/bold-italic) are kept in `config` but commented out, so Ghostty uses its
+default font; uncomment them to restore Paper Mono, which is **not** bundled
+here.
 `window-colorspace = display-p3` (macOS only) makes Ghostty interpret the theme's
 hex values (and 24-bit prompt colors) as Display P3 instead of the default sRGB,
 so on a wide-gamut display they render more saturated, closer to the wide-gamut
