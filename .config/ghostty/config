@@ -4,15 +4,16 @@ theme = Geist Dark
 window-colorspace = display-p3
 
 # Font
-font-family = "Paper Mono"
-font-feature = ss03
-font-size = 16
-adjust-cell-height = 4
-adjust-cell-width = -5%
-font-variation = wght=400
-font-variation-bold = wght=700
-font-variation-italic = wght=400
-font-variation-bold-italic = wght=700
+# Paper Mono (disabled; uncomment to restore)
+# font-family = "Paper Mono"
+# font-feature = ss03
+# font-size = 16
+# adjust-cell-height = 4
+# adjust-cell-width = -5%
+# font-variation = wght=400
+# font-variation-bold = wght=700
+# font-variation-italic = wght=400
+# font-variation-bold-italic = wght=700
 
 # Window
 macos-titlebar-style = tabs

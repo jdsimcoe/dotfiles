@@ -134,6 +134,9 @@ link_path "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support
 # Ghostty custom color themes (the config's `theme =` value resolves here)
 link_path "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 
+# Refresh Vercel's official Ghostty themes; offline, the committed copies stay
+bash "$REPO_ROOT/script/update-vercel-themes" || log "warn  Vercel theme refresh failed, keeping committed copies"
+
 # Bundled fonts (Pragma, Berkeley Mono, Ranade, …) -> ~/Library/Fonts
 shopt -s nullglob
 for font in "$REPO_ROOT"/fonts/*/*.{ttf,otf}; do

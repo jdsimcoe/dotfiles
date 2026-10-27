@@ -1,12 +1,14 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 # Minimal Vercel/Geist-inspired prompt, e.g.  dotfiles main !? ▲
 # No background blocks: the terminal background shows through. Colors are
-# 24-bit hex taken from Geist's dark-theme tokens (see README):
-#   #EDEDED  gray-1000   ▲ marker (primary text)
-#   #A1A1A1  gray-900    Git branch / commit (secondary metadata)
-#   #BF7AF0  purple-900  directory (bold), the one accent
-#   #F2A20D  amber-900   dirty / in-progress Git state
-#   #FF6166  red-900     failed command: ▲ and exit code
+# named ANSI colors, so they come from the terminal theme and switch with it
+# (e.g. vercel-dark / vercel-light from vercel.com/geist/terminal):
+#   green    ▲ marker, last command succeeded (bold)
+#   red      ▲ marker, last command failed (bold), and its exit code
+#   default  ▼ vi command-mode marker (terminal foreground)
+#   white    Git branch / commit, read-only lock (ANSI 7, secondary gray)
+#   purple   directory (bold), the one accent
+#   yellow   dirty / in-progress Git state
 # starship-plain.toml is the same layout in ASCII and 16 ANSI colors.
 format = "$directory$git_branch$git_commit$git_state$git_status$status$character"
 add_newline = false
@@ -25,9 +27,9 @@ symbol = " "
 
 [character]
 format = "$symbol "
-success_symbol = "[▲](fg:#EDEDED)"
-error_symbol = "[▲](fg:#FF6166)"
-vimcmd_symbol = "[▼](fg:#EDEDED)"
+success_symbol = "[▲](bold green)"
+error_symbol = "[▲](bold red)"
+vimcmd_symbol = "▼"
 
 [cpp]
 symbol = " "
@@ -49,12 +51,12 @@ symbol = " "
 
 [directory]
 format = "[$path]($style)[$read_only]($read_only_style) "
-style = "fg:#BF7AF0 bold"
+style = "bold purple"
 truncation_length = 3
 truncate_to_repo = true
 home_symbol = "~"
 read_only = " 󰌾"
-read_only_style = "fg:#A1A1A1"
+read_only_style = "white"
 
 [docker_context]
 symbol = " "
@@ -80,20 +82,20 @@ symbol = " "
 [git_branch]
 format = "[$branch]($style) "
 only_attached = true
-style = "fg:#A1A1A1"
+style = "white"
 
 [git_commit]
 format = "[$hash$tag]($style) "
-style = "fg:#A1A1A1"
+style = "white"
 tag_symbol = '  '
 
 [git_state]
 format = "[$state( $progress_current/$progress_total)]($style) "
-style = "fg:#F2A20D"
+style = "yellow"
 
 [git_status]
 format = "([$all_status$ahead_behind]($style) )"
-style = "fg:#F2A20D"
+style = "yellow"
 ahead = "⇡"
 behind = "⇣"
 diverged = "⇕"
@@ -241,7 +243,7 @@ symbol = " "
 [status]
 disabled = false
 format = "[$status]($style) "
-style = "fg:#FF6166"
+style = "red"
 symbol = " "
 
 [swift]
