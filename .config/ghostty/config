@@ -1,6 +1,6 @@
 # Ghostty
 auto-update-channel = stable
-theme = vercel-dark.ghostty
+theme = dark:vercel-dark.ghostty,light:vercel-dark.ghostty
 window-colorspace = display-p3
 
 # Font
