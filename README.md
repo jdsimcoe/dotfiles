@@ -85,8 +85,9 @@ setup expects GeistMono Nerd Font Mono, which `brew.sh` installs as the
 `font-geist-mono-nerd-font` cask. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
 Ranade) and are copied into `~/Library/Fonts/` by setup.
 
-Ghostty uses `theme = dark:vercel-dark.ghostty,light:vercel-light.ghostty`, Vercel's
-official themes, switching with the macOS appearance (`Geist Dark`, the earlier
+Ghostty uses `theme = dark:vercel-dark.ghostty,light:vercel-dark.ghostty`: Vercel's
+official dark theme in both appearances, written as a pair so the light override is
+visible (set `light:vercel-light.ghostty` to follow the macOS appearance; `Geist Dark`, the earlier
 Geist-inspired theme, is still in `themes/`). The font is
 `font-family = "GeistMono Nerd Font Mono"` at `font-size = 14`, as in Vercel's
 setup; `brew.sh` installs it (`font-geist-mono-nerd-font` cask), or run
