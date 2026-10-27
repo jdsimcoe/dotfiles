@@ -1,9 +1,13 @@
 # Ghostty
 auto-update-channel = stable
-theme = Geist Dark
+theme = dark:vercel-dark.ghostty,light:vercel-light.ghostty
 window-colorspace = display-p3
 
 # Font
+# GeistMono Nerd Font (brew.sh: font-geist-mono-nerd-font), per vercel.com/geist/terminal
+font-family = "GeistMono Nerd Font Mono"
+font-size = 14
+
 # Paper Mono (disabled; uncomment to restore)
 # font-family = "Paper Mono"
 # font-feature = ss03
