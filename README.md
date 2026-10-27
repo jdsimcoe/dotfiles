@@ -21,21 +21,22 @@ dotfiles main 1 ▲          last command failed (▲ turns red, green otherwise
 dotfiles main MERGING = ▲  merge with conflicts
 ```
 
-`.config/starship.toml` uses 24-bit color and Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs). The `▲` follows Vercel's official [terminal setup](https://vercel.com/geist/terminal): ANSI `bold green` after a successful command and `bold red` after a failed one, so its exact shade comes from the Ghostty theme (bold is not brightened). The other colors are a design interpretation of Geist dark-theme tokens:
+`.config/starship.toml` uses Unicode glyphs (`▲ ▼ ⇡ ⇣ ⇕ ✘ »`; the read-only lock and tag symbols are Nerd Font glyphs) and only named ANSI colors, so every color comes from the terminal theme and switches with it (e.g. `vercel-dark` / `vercel-light`). The `▲` follows Vercel's official [terminal setup](https://vercel.com/geist/terminal): `bold green` after a successful command, `bold red` after a failed one (bold is not brightened). Hex values below are the Vercel Dark / Vercel Light palette entries:
 
-| Role | Color | Token |
+| Role | Color | Vercel Dark / Light |
 | --- | --- | --- |
-| `▲` marker, success | ANSI `bold green` | theme green |
-| `▲` marker, failure | ANSI `bold red` | theme red |
-| `▼` vi command mode | terminal foreground | theme foreground |
-| Branch / commit | `#A1A1A1` | `gray-900` |
-| Directory (bold) | `#BF7AF0` | `purple-900` |
-| Dirty / in-progress | `#F2A20D` | `amber-900` |
-| Failed command's exit code | `#FF6166` | `red-900` |
+| `▲` marker, success | `bold green` (2) | `#63C174` / `#18703A` |
+| `▲` marker and exit code, failure | `bold red` / `red` (1) | `#E5484D` / `#CF2F36` |
+| `▼` vi command mode | terminal foreground | `#EDEDED` / `#24292F` |
+| Branch / commit, read-only lock | `white` (7) | `#A0A0A0` / `#4F5359` |
+| Directory (bold) | `bold purple` (5) | `#BF7AF0` / `#7E3AB8` |
+| Dirty / in-progress | `yellow` (3) | `#F1A10D` / `#8A5300` |
+
+In `Geist Dark`, ANSI 7 is `#EDEDED`, so the branch is as bright as regular text there.
 
 `.config/starship-plain.toml` is the same layout in ASCII with the 16 named ANSI colors (directory bold purple, dirty yellow, failure red, everything else the terminal foreground), so it follows the terminal's own palette. ASCII substitutions: `▲`→`>`, `▼`→`<`, `⇡`→`^`, `⇣`→`v`, `⇕`→`^v`, `✘`→`x`, `»`→`r`, lock→`ro`, tag→`tag`.
 
-`.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`), macOS Terminal (`TERM_PROGRAM=Apple_Terminal`), iTerm2 (`TERM_PROGRAM=iTerm.app`) and Rex (`TERM_PROGRAM=rex`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal with 24-bit color, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
+`.zshrc` picks the fancy one in Ghostty (`TERM_PROGRAM=ghostty` or `TERM=xterm-ghostty`), macOS Terminal (`TERM_PROGRAM=Apple_Terminal`), iTerm2 (`TERM_PROGRAM=iTerm.app`) and Rex (`TERM_PROGRAM=rex`) and the plain one everywhere else (e.g. the Codex app terminal). To use the fancy prompt in another terminal with Unicode/Nerd Font glyphs, add `export STARSHIP_FANCY=1` to `~/.zshrc.local` (or a terminal-specific check there); `STARSHIP_FANCY=0` forces plain, and an exported `STARSHIP_CONFIG` always wins.
 
 #### New machine setup
 
@@ -94,7 +95,7 @@ bold/bold-italic) are kept in `config` but commented out, so Ghostty uses its
 default font; uncomment them to restore Paper Mono, which is **not** bundled
 here.
 `window-colorspace = display-p3` (macOS only) makes Ghostty interpret the theme's
-hex values (and 24-bit prompt colors) as Display P3 instead of the default sRGB,
+hex values (which the prompt's ANSI colors resolve to) as Display P3 instead of the default sRGB,
 so on a wide-gamut display they render more saturated, closer to the wide-gamut
 `oklch()` variants vercel.com serves, but no longer the exact sRGB hex.
 
