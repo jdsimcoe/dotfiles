@@ -6,6 +6,7 @@
 # setup (vercel.com/geist/terminal), so it takes the Ghostty theme's colors:
 #   green    ▲ marker, last command succeeded
 #   red      ▲ marker, last command failed
+#   default  ▼ vi command-mode marker (terminal foreground)
 #   #A1A1A1  gray-900    Git branch / commit (secondary metadata)
 #   #BF7AF0  purple-900  directory (bold), the one accent
 #   #F2A20D  amber-900   dirty / in-progress Git state
@@ -30,7 +31,7 @@ symbol = " "
 format = "$symbol "
 success_symbol = "[▲](bold green)"
 error_symbol = "[▲](bold red)"
-vimcmd_symbol = "[▼](fg:#EDEDED)"
+vimcmd_symbol = "▼"
 
 [cpp]
 symbol = " "

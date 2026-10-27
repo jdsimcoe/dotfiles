@@ -27,6 +27,7 @@ dotfiles main MERGING = ▲  merge with conflicts
 | --- | --- | --- |
 | `▲` marker, success | ANSI `bold green` | theme green |
 | `▲` marker, failure | ANSI `bold red` | theme red |
+| `▼` vi command mode | terminal foreground | theme foreground |
 | Branch / commit | `#A1A1A1` | `gray-900` |
 | Directory (bold) | `#BF7AF0` | `purple-900` |
 | Dirty / in-progress | `#F2A20D` | `amber-900` |
