@@ -6,7 +6,7 @@ window-colorspace = display-p3
 # Font
 # GeistMono Nerd Font (brew.sh: font-geist-mono-nerd-font), per vercel.com/geist/terminal
 font-family = "GeistMono Nerd Font Mono"
-font-size = 14
+font-size = 15
 
 # Paper Mono (disabled; uncomment to restore)
 # font-family = "Paper Mono"
@@ -24,8 +24,8 @@ macos-titlebar-style = tabs
 window-save-state = always
 window-step-resize = false
 
-window-padding-x = 6
-window-padding-y = 4
+window-padding-x = 12
+window-padding-y = 6
 window-padding-balance = true
 
 # Cursor
