@@ -18,6 +18,7 @@ A minimal Vercel/Geist-inspired prompt: directory, Git branch (or commit when de
 dotfiles main ▲            clean
 dotfiles main !+? ▲        modified, staged, untracked
 dotfiles main 1 ▲          last command failed (▲ turns red, white otherwise)
+dotfiles main ▲            just pulled/pushed/fetched and in sync (green, one prompt)
 dotfiles main MERGING = ▲  merge with conflicts
 ```
 
@@ -26,6 +27,7 @@ dotfiles main MERGING = ▲  merge with conflicts
 | Role | Color | Vercel Dark / Light |
 | --- | --- | --- |
 | `▲` marker, success | `bold` terminal foreground | `#EDEDED` / `#24292F` |
+| `▲` marker, right after a successful `git pull` / `push` / `fetch` (or `gcp`) leaves `HEAD` at its upstream; one prompt only, set by `.zshrc` | `bold green` (2) | `#63C174` / `#18703A` |
 | `▲` marker and exit code, failure | `bold red` / `red` (1) | `#E5484D` / `#CF2F36` |
 | `▼` vi command mode | terminal foreground | `#EDEDED` / `#24292F` |
 | Branch / commit, read-only lock | `white` (7) | `#A0A0A0` / `#4F5359` |
