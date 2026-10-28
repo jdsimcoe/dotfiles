@@ -170,8 +170,31 @@ else
   set_default_shell_to_zsh
 fi
 
+# setup-cliamp needs tomllib (Python 3.11+). macOS's /usr/bin/python3 is 3.9,
+# so prefer Homebrew's python3 even if it isn't first on PATH yet.
+find_python311() {
+  local candidate
+  local candidates=()
+  if command -v brew >/dev/null 2>&1; then
+    candidates+=("$(brew --prefix)/bin/python3")
+  fi
+  candidates+=(python3)
+  for candidate in "${candidates[@]}"; do
+    if command -v "$candidate" >/dev/null 2>&1 &&
+      "$candidate" -c 'import sys; sys.exit(sys.version_info < (3, 11))' 2>/dev/null; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # cliamp settings, visualizers, and terminal-derived grayscale theme.
-python3 "$REPO_ROOT/script/setup-cliamp" --skip-install
+if PYTHON311="$(find_python311)"; then
+  "$PYTHON311" "$REPO_ROOT/script/setup-cliamp" --skip-install
+else
+  log "warn  skip cliamp setup (needs Python 3.11+; run brew.sh, then ./script/setup-cliamp)"
+fi
 
 if [[ $RUN_MACOS -eq 1 ]]; then
   if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/.macos" ]]; then
