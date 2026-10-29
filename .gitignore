@@ -22,3 +22,4 @@
 .config/cliamp/resume.json
 .config/cliamp/plugins/.trust.json
 .config/cliamp/themes/ANSIgray.toml
+.config/nvim/lazy-lock.json
