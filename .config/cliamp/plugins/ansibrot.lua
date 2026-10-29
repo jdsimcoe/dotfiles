@@ -126,7 +126,7 @@ end
 
 function p:init()
     local saved = cliamp.store.get("palette")
-    if not set_palette(saved or "ansi") then set_palette("ansi") end
+    if not set_palette(saved or "grayscale") then set_palette("grayscale") end
     self.zoom          = MIN_ZOOM
     self.zoom_dir      = 1
     self.zoom_log      = 0.0
