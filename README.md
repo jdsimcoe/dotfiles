@@ -114,8 +114,8 @@ Node is managed by [fnm](https://github.com/Schniz/fnm), not the Homebrew
 `node` formula: Homebrew no longer bottles node for Intel macOS, so on Intel
 Macs `brew install node` compiles from source for hours. fnm downloads
 official prebuilt nodejs.org binaries for both architectures. `brew.sh`
-installs fnm, the current LTS, enables corepack (bundled with Node), and
-installs `vercel` through npm. `.zshrc` activates fnm with `--use-on-cd`, so
+installs fnm, the current LTS, and `corepack` (no longer bundled with Node
+25+) and `vercel` through npm, then enables corepack. `.zshrc` activates fnm with `--use-on-cd`, so
 directories with a `.node-version` or `.nvmrc` switch versions automatically.
 
 ```bash

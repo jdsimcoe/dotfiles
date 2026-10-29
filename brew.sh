@@ -92,8 +92,8 @@ fi
 # Node.js comes from fnm with official prebuilt nodejs.org binaries, not the
 # Homebrew node formula: Homebrew no longer bottles node for Intel macOS, so
 # `brew install node` (or corepack/vercel-cli, which depend on it) compiles
-# Node from source there, taking hours. corepack ships inside Node itself and
-# vercel installs through npm.
+# Node from source there, taking hours. corepack and vercel install through
+# npm: Node 25+ (LTS from Node 26) no longer bundles corepack.
 echo "Installing Node.js LTS via fnm..."
 eval "$(fnm env)"
 if fnm list | grep -q 'lts-latest'; then
@@ -101,6 +101,12 @@ if fnm list | grep -q 'lts-latest'; then
 else
   fnm install --lts
   fnm default lts-latest
+fi
+
+if command -v corepack >/dev/null 2>&1; then
+  echo "  skip corepack (already on PATH)"
+else
+  npm install --global corepack
 fi
 corepack enable
 
