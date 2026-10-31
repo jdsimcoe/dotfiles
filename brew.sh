@@ -38,6 +38,7 @@ FORMULAE=(
   "bc"
   "bjarneo/cliamp/cliamp"
   "cabal-install"
+  "dfu-util"
   "direnv"
   "fd"
   "ffmpeg"

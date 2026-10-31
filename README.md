@@ -9,6 +9,7 @@ Personal machine setup split into:
 - `script/setup` as the master bootstrap script for new machines
 - `script/clean` as an optional manual maintenance/cleanup script (not run by setup)
 - `script/icons` as a persistent custom-app-icon registry with a LaunchAgent that re-applies them
+- `keyboards/` with keymap backups and flashing notes; `script/flash-cleaver` flashes and verifies the Cleaver HE (see [`keyboards/cleaver/README.md`](keyboards/cleaver/README.md))
 
 #### Starship prompt
 

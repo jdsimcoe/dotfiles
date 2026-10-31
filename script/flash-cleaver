@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+# flash-cleaver — flash Serene Industries Cleaver HE firmware over USB DFU,
+# then read the flash back and compare it byte-for-byte.
+#
+#   flash-cleaver                    → latest release, macOS layout
+#   flash-cleaver via                → latest release, Windows (VIA) layout
+#   flash-cleaver mac 0.4.2.7        → a specific release
+#   flash-cleaver ~/Downloads/x.bin  → a local .bin
+#
+# Put the board in bootloader mode first: hold the key right of ↑, press Esc.
+# Releases: https://github.com/serene-industries/firmware/releases
+#
+# QMK Toolbox (0.3.4) bundles an Intel-only dfu-util, which fails with
+# "Bad CPU type in executable" on Apple Silicon without Rosetta. This uses
+# Homebrew's native dfu-util instead.
+
+set -euo pipefail
+
+REPO="serene-industries/firmware"
+TAG_PREFIX="cleaver-he-v"
+DFU_ID="0483:df11" # STM32 system bootloader
+FLASH_ADDR="0x08000000"
+WAIT_SECONDS="${FLASH_CLEAVER_WAIT_SECONDS:-60}"
+
+usage() {
+  echo "usage: flash-cleaver [mac|via] [version] | flash-cleaver <file.bin>" >&2
+  exit 1
+}
+
+command -v dfu-util >/dev/null 2>&1 || {
+  echo "flash-cleaver: dfu-util not found (brew install dfu-util)" >&2
+  exit 1
+}
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+
+arg="${1:-mac}"
+if [[ -f "$arg" ]]; then
+  bin="$arg"
+else
+  [[ "$arg" == "mac" || "$arg" == "via" ]] || usage
+  command -v gh >/dev/null 2>&1 || {
+    echo "flash-cleaver: gh not found (brew install gh)" >&2
+    exit 1
+  }
+  if [[ -n "${2:-}" ]]; then
+    tag="${TAG_PREFIX}${2#v}"
+  else
+    tag="$(gh release list -R "$REPO" -L 50 --json tagName \
+      -q "[.[] | select(.tagName | startswith(\"$TAG_PREFIX\"))][0].tagName")"
+  fi
+  [[ -n "$tag" ]] || { echo "flash-cleaver: no $TAG_PREFIX release found" >&2; exit 1; }
+  asset="cleaver_hall_effect_${arg}.bin"
+  echo "flash-cleaver: downloading $asset from $tag"
+  gh release download "$tag" -R "$REPO" -p "$asset" -D "$tmp"
+  bin="$tmp/$asset"
+fi
+
+# Release .bins carry a 16-byte DFU suffix ("UFD" signature 8 bytes from the
+# end). dfu-util strips it before writing, so verify against the payload only.
+size="$(stat -f %z "$bin")"
+if [[ "$(tail -c 8 "$bin" | head -c 3)" == "UFD" ]]; then
+  size=$((size - 16))
+fi
+
+echo "flash-cleaver: waiting for the board in bootloader mode (hold key right of ↑ + Esc)"
+for ((i = 0; i < WAIT_SECONDS; i++)); do
+  dfu-util -l -d "$DFU_ID" 2>/dev/null | grep -q 'Internal Flash' && break
+  sleep 1
+done
+dfu-util -l -d "$DFU_ID" 2>/dev/null | grep -q 'Internal Flash' || {
+  echo "flash-cleaver: no STM32 DFU device ($DFU_ID) after ${WAIT_SECONDS}s" >&2
+  exit 1
+}
+
+echo "flash-cleaver: writing $size bytes to $FLASH_ADDR"
+dfu-util -a 0 -d "$DFU_ID" -s "$FLASH_ADDR" -D "$bin"
+
+echo "flash-cleaver: reading back to verify"
+dfu-util -a 0 -d "$DFU_ID" -s "$FLASH_ADDR:$size:leave" -U "$tmp/readback.bin"
+if ! cmp -s <(head -c "$size" "$bin") "$tmp/readback.bin"; then
+  echo "flash-cleaver: VERIFY FAILED, flash does not match $bin" >&2
+  exit 1
+fi
+echo "flash-cleaver: verified, flash matches $(basename "$bin") ($size bytes)"
+
+sleep 2
+if dfu-util -l -d "$DFU_ID" 2>/dev/null | grep -q 'Internal Flash'; then
+  echo "flash-cleaver: still in bootloader, unplug and replug the board to start it"
+fi
