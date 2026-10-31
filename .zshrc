@@ -27,6 +27,10 @@ bluelog() {
   sudo log show --predicate 'subsystem == "com.apple.bluetooth"' --last 30m > "$HOME/bt_drop.log"
 }
 
+v() {
+  claude -p "Use the v MCP server to answer: $*" --allowedTools "mcp__v"
+}
+
 alias gd="git diff"
 alias gs="git status 2>/dev/null"
 alias ga="git add . && git add -u"
