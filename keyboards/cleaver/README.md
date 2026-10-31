@@ -30,9 +30,9 @@ with "Bad CPU type in executable" on Apple Silicon unless Rosetta is installed.
 
 ## Firmware version shown in the configurator
 
-The configurator showed "FW v0.0.0.41" with "update v0.4.2.7 available" even
-after a successful 0.4.2.7 flash. The firmware doesn't embed its release
-version: `keyboard.json` keeps `device_version` at `0.0.1` (USB `bcdDevice`
-`0x0001`) across releases, so the configurator can't tell builds apart. Trust
-the read-back check in `flash-cleaver`, or the changelog's behavior changes,
-over that label.
+After the first 0.4.2.7 flash (via `dfu-util`'s `:leave`), the configurator
+kept showing "FW v0.0.0.41" with "update v0.4.2.7 available". After a second
+flash with `flash-cleaver` it showed the new version. The configurator doesn't
+read the version from USB (`bcdDevice` stays `0x0001` on every release), so
+it's unclear which step fixed the label. If it looks stale, trust the
+read-back check in `flash-cleaver` over the label.
