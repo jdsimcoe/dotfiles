@@ -31,6 +31,16 @@ v() {
   claude -p "Use the v MCP server to answer: $*" --allowedTools "mcp__v"
 }
 
+# Quote everything after `v ` before zsh parses it, so `v what's up?` works
+# without an unmatched-quote continuation prompt or a glob error.
+_dotfiles_v_accept_line() {
+  if [[ $BUFFER == v\ * ]]; then
+    BUFFER="v ${(q)${BUFFER#v }}"
+  fi
+  zle .accept-line
+}
+zle -N accept-line _dotfiles_v_accept_line
+
 alias gd="git diff"
 alias gs="git status 2>/dev/null"
 alias ga="git add . && git add -u"
