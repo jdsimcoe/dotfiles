@@ -447,3 +447,13 @@ export PATH="$HOME/.grok/bin:$PATH"
 fpath=(~/.grok/completions/zsh $fpath)
 autoload -Uz compinit && compinit -C
 # <<< grok installer <<<
+
+# Added by MDM Homebrew Postinstall Automation
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# >>> vercel ai-gateway >>>
+# Managed by `vercel ai-gateway setup` — safe to remove this block.
+[ -n "${_VERCEL_DESKTOP_KEY-}" ] && [ -z "${TMUX-}" ] || export _VERCEL_DESKTOP_KEY="$(/usr/bin/security find-generic-password -s 'Vercel AI Gateway' -a 'vercel-desktop-key' -w 2>/dev/null)"
+export AI_GATEWAY_API_KEY="$_VERCEL_DESKTOP_KEY"
+export VERCEL_AI_GATEWAY_API_KEY="$_VERCEL_DESKTOP_KEY"
+# <<< vercel ai-gateway <<<
