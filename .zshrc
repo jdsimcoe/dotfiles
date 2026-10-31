@@ -27,15 +27,39 @@ bluelog() {
   sudo log show --predicate 'subsystem == "com.apple.bluetooth"' --last 30m > "$HOME/bt_drop.log"
 }
 
+# Runs claude in the background and spins braille dots in place until it
+# answers. Ctrl-C kills the request.
 v() {
-  claude -p "Use the v MCP server to answer: $*" --allowedTools "mcp__v"
+  emulate -L zsh
+  setopt no_monitor no_notify
+  if [[ ! -t 1 ]]; then
+    claude -p "Use the v MCP server to answer: $*" --allowedTools "mcp__v"
+    return
+  fi
+  local out=$(mktemp -t v) frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' i=0 pid
+  claude -p "Use the v MCP server to answer: $*" --allowedTools "mcp__v" >$out 2>&1 &
+  pid=$!
+  trap 'kill $pid 2>/dev/null; printf "\r\e[K\e[?25h"; rm -f $out; return 130' INT
+  printf '\e[?25l'
+  while kill -0 $pid 2>/dev/null; do
+    printf '\r\e[35m%s\e[0m \e[2mThinking…\e[0m' ${frames[i++ % $#frames + 1]}
+    sleep 0.08
+  done
+  wait $pid
+  local rc=$?
+  printf '\r\e[K\e[?25h'
+  cat $out
+  rm -f $out
+  return rc
 }
 
 # Quote everything after `v ` before zsh parses it, so `v what's up?` works
-# without an unmatched-quote continuation prompt or a glob error.
+# without an unmatched-quote continuation prompt or a glob error. Double quotes
+# keep the echoed line readable; `!` is escaped to dodge history expansion.
 _dotfiles_v_accept_line() {
   if [[ $BUFFER == v\ * ]]; then
-    BUFFER="v ${(q)${BUFFER#v }}"
+    local q=${(qqq)${BUFFER#v }}
+    BUFFER="v ${q//\!/\\!}"
   fi
   zle .accept-line
 }
