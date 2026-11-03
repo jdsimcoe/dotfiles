@@ -143,6 +143,10 @@ for theme in "$REPO_ROOT"/.config/herdr-app/themes/*.json; do
   link_path "$theme" "$HOME/.config/herdr-app/themes/$(basename "$theme")"
 done
 
+# Herdr mods, layout, keys and settings: copied, not linked (Herdr's watcher
+# doesn't follow symlinks). script/herdr-sync copies edits back into the repo.
+bash "$REPO_ROOT/script/herdr-sync" --restore
+
 # Claude Code themes (settings.json's `custom:<name>` theme resolves here).
 # Linked per file: Claude Code writes its own theme files here too.
 for theme in "$REPO_ROOT"/.claude/themes/*.json; do

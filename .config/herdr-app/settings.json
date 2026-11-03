@@ -1,0 +1,14 @@
+{
+  "zoom": 1.0,
+  "sounds": {
+    "enabled": true
+  },
+  "font": "Berkeley Mono",
+  "font_size": 14.0,
+  "minimum_contrast": 1.0,
+  "appearance": "dark",
+  "theme": {
+    "light": "vercel-light",
+    "dark": "vercel-dark"
+  }
+}

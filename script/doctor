@@ -43,6 +43,7 @@ check_link "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 for theme in "$REPO_ROOT"/.config/herdr-app/themes/*.json; do
   check_link "$theme" "$HOME/.config/herdr-app/themes/$(basename "$theme")"
 done
+bash "$REPO_ROOT/script/herdr-sync" --check || STATUS=1
 for theme in "$REPO_ROOT"/.claude/themes/*.json; do
   check_link "$theme" "$HOME/.claude/themes/$(basename "$theme")"
 done
