@@ -43,6 +43,9 @@ check_link "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 for theme in "$REPO_ROOT"/.config/herdr-app/themes/*.json; do
   check_link "$theme" "$HOME/.config/herdr-app/themes/$(basename "$theme")"
 done
+for theme in "$REPO_ROOT"/.claude/themes/*.json; do
+  check_link "$theme" "$HOME/.claude/themes/$(basename "$theme")"
+done
 check_link "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
 check_link "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
 check_link "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"

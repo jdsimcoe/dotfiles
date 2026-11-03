@@ -1,0 +1,37 @@
+{
+  "name": "vercel-dark",
+  "base": "dark-ansi",
+  "overrides": {
+    "claude": "ansi:red",
+    "clawd_body": "ansi:red",
+    "briefLabelClaude": "ansi:red",
+    "error": "ansi:red",
+    "fastMode": "ansi:red",
+    "red_FOR_SUBAGENTS_ONLY": "ansi:red",
+
+    "success": "ansi:green",
+    "green_FOR_SUBAGENTS_ONLY": "ansi:green",
+
+    "warning": "ansi:yellow",
+    "chromeYellow": "ansi:yellow",
+    "yellow_FOR_SUBAGENTS_ONLY": "ansi:yellow",
+
+    "claudeBlue_FOR_SYSTEM_SPINNER": "ansi:blue",
+    "permission": "ansi:blue",
+    "suggestion": "ansi:blue",
+    "remember": "ansi:blue",
+    "professionalBlue": "ansi:blue",
+    "blue_FOR_SUBAGENTS_ONLY": "ansi:blue",
+
+    "autoAccept": "ansi:magenta",
+    "skill": "ansi:magenta",
+    "bashBorder": "ansi:magenta",
+    "merged": "ansi:magenta",
+    "effortUltra": "ansi:magenta",
+    "purple_FOR_SUBAGENTS_ONLY": "ansi:magenta",
+
+    "planMode": "ansi:cyan",
+    "background": "ansi:cyan",
+    "cyan_FOR_SUBAGENTS_ONLY": "ansi:cyan"
+  }
+}

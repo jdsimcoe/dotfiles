@@ -52,7 +52,7 @@ chmod +x script/setup
 This will:
 
 - back up existing files into `~/.dotfiles-backups/<timestamp>/`
-- symlink repo files into place (`.hushlogin`, `.zprofile`, `.zshrc`, Starship, Neovim, Ghostty config and themes, Karabiner, Zed settings)
+- symlink repo files into place (`.hushlogin`, `.zprofile`, `.zshrc`, Starship, Neovim, Ghostty config and themes, Claude Code themes, Karabiner, Zed settings)
 - copy bundled fonts (Pragma, Berkeley Mono, Ranade) into `~/Library/Fonts/`
 - set global Git defaults like `push.autoSetupRemote=true`, `user.email`, and `user.name`
 - switch your login shell to zsh
@@ -108,6 +108,16 @@ so on a wide-gamut display they render more saturated, closer to the wide-gamut
 Reload with Cmd+Shift+, (`reload_config`). Colors update in open windows; font
 settings may only apply to new windows/tabs, so open one (or restart Ghostty)
 to check weights.
+
+#### Claude Code theme
+
+`.claude/themes/vercel-dark.json` is linked into `~/.claude/themes/`. It builds
+on Claude Code's `dark-ansi` theme, which uses the paler bright ANSI slots 9–14
+for most colors. The theme moves those tokens to the saturated normal slots 1–6
+(the Geist red, green, amber, blue, purple, and teal in `vercel-dark.ghostty`).
+Shimmers, diff word highlights, and the orange and pink subagent colors stay on
+the bright slots so they remain distinct. Select it with `/theme` or set
+`"theme": "custom:vercel-dark"` in `~/.claude/settings.json`.
 
 #### Neovim
 

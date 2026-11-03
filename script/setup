@@ -143,6 +143,12 @@ for theme in "$REPO_ROOT"/.config/herdr-app/themes/*.json; do
   link_path "$theme" "$HOME/.config/herdr-app/themes/$(basename "$theme")"
 done
 
+# Claude Code themes (settings.json's `custom:<name>` theme resolves here).
+# Linked per file: Claude Code writes its own theme files here too.
+for theme in "$REPO_ROOT"/.claude/themes/*.json; do
+  link_path "$theme" "$HOME/.claude/themes/$(basename "$theme")"
+done
+
 # Bundled fonts (Pragma, Berkeley Mono, Ranade, …) -> ~/Library/Fonts
 shopt -s nullglob
 for font in "$REPO_ROOT"/fonts/*/*.{ttf,otf}; do
