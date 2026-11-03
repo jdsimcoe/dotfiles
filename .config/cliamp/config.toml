@@ -3,7 +3,7 @@ volume = 0
 provider = "ytmusic"
 initial_directory = "~/Music"
 eq_preset = "Flat"
-visualizer = "ANSIbrot"
+visualizer = "Dots"
 sample_rate = 0
 bit_depth = 32
 
