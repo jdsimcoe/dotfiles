@@ -317,12 +317,12 @@ sleep 1
 # footer) doesn't sit on the window edge
 defaults write com.superlogical.rex Workspace.terminalPaddingY -float 14
 
-# Import vercel-dark-vivid.ghostty (script/update-vercel-themes writes it) as a
+# Import Vercel Dark.ghostty (script/update-vercel-themes writes it) as a
 # Rex theme; Rex names it after the file and selects it. Skipped when it's
 # already imported. Needs Rex running with Remote Control on (Settings > Rex
 # Server).
 rex_cli="$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
-rex_theme="$HOME/.config/ghostty/themes/vercel-dark-vivid.ghostty"
+rex_theme="$HOME/.config/ghostty/themes/Vercel Dark.ghostty"
 rex_has_theme() {
 	defaults export com.superlogical.rex - 2>/dev/null | python3 -c '
 import json, plistlib, sys

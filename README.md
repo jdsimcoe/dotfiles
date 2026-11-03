@@ -83,18 +83,18 @@ value. The two official Vercel themes come from
 `./script/update-vercel-themes` (also run by setup) downloads them again and
 replaces the committed copies only when the download is a valid Ghostty theme,
 so `git diff` shows any upstream change. It then writes
-`vercel-dark-vivid.ghostty`: `vercel-dark.ghostty` with bright blue (palette 12)
+`Vercel Dark.ghostty`: `vercel-dark.ghostty` with bright blue (palette 12)
 set to the saturated Geist blue `#52a9ff` instead of the pastel `#97c9fe`,
 because Claude Code colors inline code with ANSI 12 and ignores custom theme
 overrides there. `.macos` imports the same file into Rex (Rex names the theme
-`vercel-dark-vivid`), skipping it once imported; this needs Rex open with
+"Vercel Dark"), skipping it once imported; this needs Rex open with
 Remote Control on under Settings > Rex Server. To follow the system appearance, use
-`theme = dark:vercel-dark-vivid.ghostty,light:vercel-light.ghostty`. Their Starship
+`theme = dark:Vercel Dark.ghostty,light:vercel-light.ghostty`. Their Starship
 setup expects GeistMono Nerd Font Mono, which `brew.sh` installs as the
 `font-geist-mono-nerd-font` cask. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
 Ranade) and are copied into `~/Library/Fonts/` by setup.
 
-Ghostty uses `theme = dark:vercel-dark-vivid.ghostty,light:vercel-dark-vivid.ghostty`: Vercel's
+Ghostty uses `theme = dark:Vercel Dark.ghostty,light:Vercel Dark.ghostty`: Vercel's
 official dark theme (with the saturated bright blue) in both appearances, written as a pair so the light override is
 visible (set `light:vercel-light.ghostty` to follow the macOS appearance; `Geist Dark`, the earlier
 Geist-inspired theme, is still in `themes/`). The font is
