@@ -99,6 +99,17 @@ setup expects GeistMono Nerd Font Mono, which `brew.sh` installs as the
 `font-geist-mono-nerd-font` cask. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
 Ranade) and are copied into `~/Library/Fonts/` by setup.
 
+Herdr's own config lives in [`.config/herdr-app/`](.config/herdr-app/): the
+`my-main` layout, `keys.json`, `settings.json`, `programs.json`, `my-icons/`
+and my mods (`linear`, `vercel`, and `my-spaces`, `space-icon`, `my-tabs` and
+`my-new-menu`, which are clones of shipped mods: project icons in the Spaces
+list, and Settings and Add machine in the tab bar's + menu). They're copied,
+not linked, because Herdr's file watcher doesn't follow symlinks and a linked
+mod never hot-reloads. After editing them in Herdr, run `./script/herdr-sync`
+to copy them into the repo; setup copies them back (`--restore`) and doctor
+reports drift (`--check`). Herdr's generated `gpui-kit.d.ts`/`jsconfig.json`
+and hidden caches stay out. Add a new mod to `MODS` in the script.
+
 Ghostty uses `theme = dark:Vercel Dark.ghostty,light:Vercel Dark.ghostty`: Vercel's
 official dark theme (with the saturated bright blue) in both appearances, written as a pair so the light override is
 visible (set `light:Vercel Light.ghostty` to follow the macOS appearance; `Geist Dark`, the earlier

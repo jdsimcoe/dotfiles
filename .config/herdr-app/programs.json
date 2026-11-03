@@ -1,0 +1,5 @@
+{
+  "programs": {
+    "fx": { "name": "fx", "icon": "my-icons/fx.svg", "tint": true }
+  }
+}

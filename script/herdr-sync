@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+#
+# Herdr's own config, copied (not linked) between ~/.config/herdr-app and the
+# repo: Herdr's file watcher doesn't follow symlinks, so a linked mod never
+# hot-reloads. Themes are linked by script/setup instead (Herdr only reads them).
+#
+#   script/herdr-sync            copy the live files into the repo
+#   script/herdr-sync --restore  copy the repo's files into ~/.config/herdr-app
+#   script/herdr-sync --check    list what differs; exit 1 if anything does
+#
+# Herdr's generated files (gpui-kit.d.ts, jsconfig.json) and hidden caches
+# (.icons/, .previews/) stay out.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+LIVE="$HOME/.config/herdr-app"
+REPO="$REPO_ROOT/.config/herdr-app"
+
+# Mods and files that are mine, not Herdr's shipped ones (those it restores itself).
+MODS=(linear vercel my-spaces space-icon my-tabs my-new-menu)
+FILES=(keys.json settings.json programs.json layouts/my-main.json)
+DIRS=(my-icons)
+
+EXCLUDES=(--exclude gpui-kit.d.ts --exclude jsconfig.json --exclude '.*')
+
+mode="pull"
+case "${1:-}" in
+  "") ;;
+  --restore) mode="restore" ;;
+  --check) mode="check" ;;
+  *)
+    printf '%s\n' "Usage: $0 [--restore | --check]"
+    exit 1
+    ;;
+esac
+
+drift=0
+
+# One folder or file, from -> to. A pull mirrors (a file deleted live goes from
+# the repo too); a restore only adds and overwrites.
+sync() {
+  local rel="$1" dir="$2"
+  local slash=""
+  [[ "$dir" == 1 ]] && slash="/"
+  local from="$LIVE/$rel$slash" to="$REPO/$rel$slash"
+  [[ "$mode" == "restore" ]] && { from="$REPO/$rel$slash"; to="$LIVE/$rel$slash"; }
+
+  if [[ ! -e "${from%/}" ]]; then
+    printf 'skip  %s (missing)\n' "${from%/}"
+    return
+  fi
+
+  case "$mode" in
+    check)
+      local out=""
+      if [[ "$dir" == 1 ]]; then
+        out="$(rsync -rcn --delete --out-format='%n' "${EXCLUDES[@]}" "$from" "$to" 2>/dev/null || printf 'missing\n')"
+      elif ! cmp -s "$from" "$to"; then
+        out="differs"
+      fi
+      if [[ -n "$out" ]]; then
+        printf 'drift %s (run script/herdr-sync)\n' "$LIVE/$rel"
+        drift=1
+      else
+        printf 'ok    %s\n' "$LIVE/$rel"
+      fi
+      ;;
+    pull)
+      mkdir -p "$(dirname "${to%/}")"
+      rsync -a --delete "${EXCLUDES[@]}" "$from" "$to"
+      printf 'copy  %s -> %s\n' "${from%/}" "${to%/}"
+      ;;
+    restore)
+      mkdir -p "$(dirname "${to%/}")"
+      rsync -a "${EXCLUDES[@]}" "$from" "$to"
+      printf 'copy  %s -> %s\n' "${from%/}" "${to%/}"
+      ;;
+  esac
+}
+
+for mod in "${MODS[@]}"; do sync "mods/$mod" 1; done
+for dir in "${DIRS[@]}"; do sync "$dir" 1; done
+for file in "${FILES[@]}"; do sync "$file" 0; done
+
+exit "$drift"
