@@ -317,6 +317,28 @@ sleep 1
 # footer) doesn't sit on the window edge
 defaults write com.superlogical.rex Workspace.terminalPaddingY -float 14
 
+# In a custom "Vercel Dark" theme, make bright blue (ANSI 12) the saturated
+# Geist blue #52a9ff: Claude Code colors inline code with it and ignores custom
+# theme overrides there. Does nothing until that theme exists in Rex.
+python3 - <<'PY' || true
+import json, plistlib, subprocess
+key = "Workspace.customThemes"
+prefs = plistlib.loads(subprocess.run(
+    ["defaults", "export", "com.superlogical.rex", "-"], capture_output=True, check=True
+).stdout)
+themes = json.loads(prefs.get(key, b"[]"))
+blue = {"red": 0x52 / 255, "green": 0xa9 / 255, "blue": 0xff / 255}
+changed = False
+for theme in themes:
+    ansi = theme.get("palette", {}).get("ansi", [])
+    if theme.get("name") == "Vercel Dark" and len(ansi) > 12:
+        changed |= any(abs(ansi[12].get(k, -1) - v) > 1e-6 for k, v in blue.items())
+        ansi[12].update(blue)
+if changed:
+    data = json.dumps(themes, separators=(",", ":")).encode()
+    subprocess.run(["defaults", "write", "com.superlogical.rex", key, "-data", data.hex()], check=True)
+PY
+
 ###############################################################################
 # Kill affected applications                                                 #
 ###############################################################################
