@@ -109,6 +109,84 @@ Reload with Cmd+Shift+, (`reload_config`). Colors update in open windows; font
 settings may only apply to new windows/tabs, so open one (or restart Ghostty)
 to check weights.
 
+#### Neovim
+
+`.config/nvim` is LazyVim, symlinked to `~/.config/nvim`. Plugin commits are
+pinned in `lazy-lock.json`; update with `:Lazy sync`.
+
+**Theme.** `:colorscheme vercel` (the default) is Vercel Dark or Vercel Light,
+following `'background'`. Its 16 ANSI colors, background, foreground and
+selection are the official [Geist terminal themes](https://vercel.com/geist/terminal),
+the same values as `vercel-dark.ghostty` / `vercel-light.ghostty` and Rex's
+"Vercel Dark", so `:terminal` matches too. The UI uses the Starship prompt's
+roles: purple for paths and the one accent, ANSI 7 gray for the branch and
+secondary text, amber for changed, red for failures, green for added. Syntax
+follows Geist's code blocks: keywords purple, strings and constants green,
+functions, types and tags blue, properties red, attributes amber. The
+statusline has no blocks or separators: `▼` in normal mode, `▲` in insert,
+then the branch and a bold purple path. `vercel-dark` / `vercel-light` pin one
+variant. In a terminal, Neovim asks Ghostty or Rex for its background color;
+embedded UIs like neorex can't answer, so there it follows the macOS appearance.
+The code lives in `lua/vercel/init.lua`, `colors/` and `lua/lualine/themes/vercel.lua`.
+
+**Vercel tooling** (`lua/plugins/vercel.lua`, extras in `lazyvim.json`). This
+matches `vercel/front`'s CI and `.vscode/settings.json`:
+
+| Tool | Setup |
+| --- | --- |
+| TypeScript | the native TS7 server (`tsc --lsp`, formerly tsgo) instead of vtsls; it uses the repo's `node_modules/.bin/tsc`, with Mason's TS7 as the fallback |
+| oxlint | LSP, with the repo's `oxlint.config.ts`. In `front` that config also loads the `rulesdir/*` design system rules (Geist tokens, typography, legacy components) as JS plugins, so they show up while you type without an ESLint server |
+| oxfmt | formats JS/TS/JSON on save; Prettier handles CSS, YAML and Markdown, as in `lint-staged.config.mjs` |
+| Tailwind | LSP, with `cva` / `cx` / `cn` / `clsx` class functions |
+| tsc.nvim | `:TSC` (`<leader>ct`) type-checks in the background: the whole monorepo from its root, one package from inside it |
+
+Editor diagnostics don't see `eslint-suppressions.json`, so older, suppressed
+violations still show up in files that have them. CI only fails on new ones.
+
+**Claude Code.** [claudecode.nvim](https://github.com/coder/claudecode.nvim)
+(the `ai.claudecode` extra) implements Claude Code's IDE protocol. Run
+`claude` in its own Ghostty or Rex pane and type `/ide` (or start it with
+`claude --ide`). Claude then sees the current file, selection and diagnostics,
+and its edits open as Neovim diffs: `:w` or `<leader>aa` accepts, `:q` or
+`<leader>ad` rejects. `<leader>as` sends a visual selection. The plugin doesn't
+open its own terminal (`terminal.provider = "none"`).
+
+##### neorex (experimental)
+
+[neorex](https://github.com/alexrlocke/neorex) is a Neovim frontend for
+[Rex](https://www.superlogical.com/rex/), written in Zig. One Neovim runs in the
+background behind all your panes. `:split` and `:vsplit` open real Rex panes,
+and pickers open as Rex floating panes, while buffers, registers, undo and
+language servers stay shared. Its README calls it "very early and rough". It
+needs macOS, Rex, Zig 0.17 and a Neovim 0.13-dev build. On older Neovim,
+statuslines may not show.
+
+Build and run it:
+
+```bash
+brew install zig                    # 0.17
+brew install --HEAD neovim          # 0.13-dev; replaces stable (brew reinstall neovim to go back)
+git clone https://github.com/alexrlocke/neorex ~/Developer/neorex
+cd ~/Developer/neorex && zig build
+~/Developer/neorex/zig-out/bin/neorex some/file.ts   # inside a Rex pane
+```
+
+For a short command, add `alias nr="$HOME/Developer/neorex/zig-out/bin/neorex"`
+to `~/.zshrc.local`. `neorex help` lists its debug commands.
+
+Under neorex, this config uses the same files; nothing needs to be switched on:
+
+- The theme follows the macOS appearance (see above). Every highlight is a solid
+  color, because neorex takes `Normal`'s background as the default and blends
+  floats over it.
+- With one Neovim behind every pane, Claude Code's `/ide` connects once and
+  covers all of them.
+- Limitations (from neorex's README): `<C-w>` resize, swap and move do nothing
+  (use Rex's pane controls); sidebar and layout plugins don't get the
+  placement they expect; there's only one tab page; long messages still say
+  "Press ENTER". LazyVim's global statusline (`laststatus=3`) shows once per
+  pane.
+
 #### Node.js
 
 Node is managed by [fnm](https://github.com/Schniz/fnm), not the Homebrew
