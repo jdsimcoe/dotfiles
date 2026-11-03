@@ -127,8 +127,19 @@ on Claude Code's `dark-ansi` theme, which uses the paler bright ANSI slots 9–1
 for most colors. The theme moves those tokens to the saturated normal slots 1–6
 (the Geist red, green, amber, blue, purple, and teal in `vercel-dark.ghostty`).
 Shimmers, diff word highlights, and the orange and pink subagent colors stay on
-the bright slots so they remain distinct. Select it with `/theme` or set
-`"theme": "custom:vercel-dark"` in `~/.claude/settings.json`.
+the bright slots so they remain distinct. Its message, sidebar, and memory
+backgrounds are fixed dark grays (`#1a1a1a`, `#2e2e2e` on hover), because
+ANSI 8 is Geist's light `#8f8f8f`.
+
+`.claude/themes/vercel-light.json` builds on `light-ansi` for Vercel Light. In
+that palette ANSI 7 and 15 are dark grays, so its backgrounds are fixed Geist
+light grays (`#ebebeb`, `#f2f2f2`) and selection is `#dce3ec`.
+
+A custom theme can't follow the terminal the way `auto` does, so the `claude`
+function in `.zshrc` passes `--settings '{"theme":"custom:vercel-dark"}'` when
+macOS is in Dark Mode and `custom:vercel-light` otherwise. It picks at launch;
+restart Claude Code after switching the appearance. Run `command claude` to
+bypass it.
 
 #### Neovim
 

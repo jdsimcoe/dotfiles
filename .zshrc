@@ -27,6 +27,15 @@ bluelog() {
   sudo log show --predicate 'subsystem == "com.apple.bluetooth"' --last 30m > "$HOME/bt_drop.log"
 }
 
+# Custom Claude Code themes can't follow the terminal like "auto" does, so pick
+# vercel-dark or vercel-light (.claude/themes) from the macOS appearance at
+# launch. --settings outranks ~/.claude/settings.json.
+claude() {
+  local theme=custom:vercel-light
+  [[ $(defaults read -g AppleInterfaceStyle 2>/dev/null) == Dark ]] && theme=custom:vercel-dark
+  command claude --settings "{\"theme\":\"$theme\"}" "$@"
+}
+
 # Runs claude in the background and spins braille dots in place until it
 # answers. Ctrl-C kills the request.
 v() {

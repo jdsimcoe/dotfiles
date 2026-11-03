@@ -1,0 +1,20 @@
+{
+  "name": "vercel-light",
+  "base": "light-ansi",
+  "overrides": {
+    "claude": "ansi:red",
+    "clawd_body": "ansi:red",
+    "briefLabelClaude": "ansi:red",
+    "fastMode": "ansi:red",
+    "ide": "ansi:blue",
+    "professionalBlue": "ansi:blue",
+
+    "inverseText": "#ffffff",
+    "userMessageBackground": "#ebebeb",
+    "userMessageBackgroundHover": "#dedede",
+    "composerSidebarBackground": "#f2f2f2",
+    "bashMessageBackgroundColor": "#f2f2f2",
+    "memoryBackgroundColor": "#ebebeb",
+    "selectionBg": "#dce3ec"
+  }
+}
