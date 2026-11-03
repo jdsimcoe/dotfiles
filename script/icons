@@ -305,7 +305,7 @@ cmd_add() {
   registry_upsert "$app" "$mode" "${stored:t}"
   ok "registered $name ($mode) -> ${stored:t}"
 
-  QUIET=0 FORCE=0
+  QUIET=0 FORCE=1  # new icon may differ from what the applied-state sha tracks
   apply_one "$app" || true
   refresh_caches
   agent_installed && cmd_install || true
