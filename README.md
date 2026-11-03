@@ -256,13 +256,16 @@ player so cliamp loads the updated Lua code.
 While cliamp is running, switch ANSIbrot from a second terminal tab:
 
 ```bash
+cliamp plugins call ANSIbrot palette vivid
 cliamp plugins call ANSIbrot palette ansi
 cliamp plugins call ANSIbrot palette grayscale
 ```
 
-The visualizer defaults to full ANSI color; its palette choice persists.
-The interface remains grayscale. "Grayscale" uses the terminal's neutral
-slots, preserving any tint assigned by the terminal theme.
+The visualizer defaults to "vivid", the normal ANSI slots 1–6, which hold the
+saturated Geist colors under `vercel-dark.ghostty`; "ansi" mixes in the paler
+bright slots 9–14. Its palette choice persists. The interface remains
+grayscale. "Grayscale" uses the terminal's neutral slots, preserving any tint
+assigned by the terminal theme.
 
 The launcher requires OSC 4, 10, and 11 color-query support. If queries are
 unavailable, it uses the last resolved ANSIgray theme or a neutral first-run

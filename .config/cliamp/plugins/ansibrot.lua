@@ -65,6 +65,7 @@ local RESET = ESC .. "[0m"
 
 local PALETTES = {
     grayscale = {8, 7, 15},
+    vivid = {1, 5, 4, 6, 2, 3},
     ansi = {1, 9, 5, 13, 4, 12, 6, 14, 2, 10, 3, 11},
 }
 local PAL = 30
@@ -126,7 +127,7 @@ end
 
 function p:init()
     local saved = cliamp.store.get("palette")
-    if not set_palette(saved or "grayscale") then set_palette("grayscale") end
+    if not set_palette(saved or "vivid") then set_palette("vivid") end
     self.zoom          = MIN_ZOOM
     self.zoom_dir      = 1
     self.zoom_log      = 0.0
@@ -395,7 +396,7 @@ p:command("palette", function(args)
     local name = args[1]
     if not name then return active_palette or "ansi" end
     if not set_palette(name) then
-        return "Usage: palette ansi|grayscale"
+        return "Usage: palette vivid|ansi|grayscale"
     end
     local ok, err = cliamp.store.set("palette", active_palette)
     if not ok then return "Palette applied but could not save: " .. tostring(err) end
