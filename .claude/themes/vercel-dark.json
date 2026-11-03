@@ -34,8 +34,8 @@
     "background": "ansi:cyan",
     "cyan_FOR_SUBAGENTS_ONLY": "ansi:cyan",
 
-    "userMessageBackground": "#1a1a1a",
-    "userMessageBackgroundHover": "#2e2e2e",
+    "userMessageBackground": "#000000",
+    "userMessageBackgroundHover": "#111111",
     "composerSidebarBackground": "#1a1a1a",
     "memoryBackgroundColor": "#1a1a1a"
   }
