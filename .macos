@@ -310,7 +310,15 @@ sleep 1
   2>/dev/null || true
 
 ###############################################################################
-# Kill affected applications                                                  #
+# Rex                                                                         #
+###############################################################################
+
+# Pad the top and bottom of terminal panes so the last row (e.g. Claude Code's
+# footer) doesn't sit on the window edge
+defaults write com.superlogical.rex Workspace.terminalPaddingY -float 14
+
+###############################################################################
+# Kill affected applications                                                 #
 ###############################################################################
 
 for app in "Activity Monitor" \
