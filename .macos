@@ -317,27 +317,29 @@ sleep 1
 # footer) doesn't sit on the window edge
 defaults write com.superlogical.rex Workspace.terminalPaddingY -float 14
 
-# In a custom "Vercel Dark" theme, make bright blue (ANSI 12) the saturated
-# Geist blue #52a9ff: Claude Code colors inline code with it and ignores custom
-# theme overrides there. Does nothing until that theme exists in Rex.
-python3 - <<'PY' || true
-import json, plistlib, subprocess
-key = "Workspace.customThemes"
-prefs = plistlib.loads(subprocess.run(
-    ["defaults", "export", "com.superlogical.rex", "-"], capture_output=True, check=True
-).stdout)
-themes = json.loads(prefs.get(key, b"[]"))
-blue = {"red": 0x52 / 255, "green": 0xa9 / 255, "blue": 0xff / 255}
-changed = False
-for theme in themes:
-    ansi = theme.get("palette", {}).get("ansi", [])
-    if theme.get("name") == "Vercel Dark" and len(ansi) > 12:
-        changed |= any(abs(ansi[12].get(k, -1) - v) > 1e-6 for k, v in blue.items())
-        ansi[12].update(blue)
-if changed:
-    data = json.dumps(themes, separators=(",", ":")).encode()
-    subprocess.run(["defaults", "write", "com.superlogical.rex", key, "-data", data.hex()], check=True)
-PY
+# Import vercel-dark-vivid.ghostty (script/update-vercel-themes writes it) as a
+# Rex theme; Rex names it after the file and selects it. Skipped when it's
+# already imported. Needs Rex running with Remote Control on (Settings > Rex
+# Server).
+rex_cli="$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
+rex_theme="$HOME/.config/ghostty/themes/vercel-dark-vivid.ghostty"
+rex_has_theme() {
+	defaults export com.superlogical.rex - 2>/dev/null | python3 -c '
+import json, plistlib, sys
+themes = json.loads(plistlib.loads(sys.stdin.buffer.read()).get("Workspace.customThemes", b"[]"))
+sys.exit(not any(t.get("source", {}).get("ghosttyFile", {}).get("fileName") == sys.argv[1] for t in themes))
+' "$(basename "$rex_theme")"
+}
+if [[ -x "$rex_cli" && -f "$rex_theme" ]] && ! rex_has_theme; then
+	rex_app="$("$rex_cli" client ls --json 2>/dev/null | python3 -c '
+import json, sys
+print(next((c["info"]["label"] for c in json.load(sys.stdin)["clients"] if c.get("info", {}).get("kind") == "app"), ""))
+')"
+	if [[ -z "$rex_app" ]] || ! "$rex_cli" -C "$rex_app" do client.theme.import path="$rex_theme"; then
+		echo "Rex: open Rex, turn on Remote Control, and import $rex_theme"
+		echo "     (or use Import Theme File in its command palette)."
+	fi
+fi
 
 ###############################################################################
 # Kill affected applications                                                 #
