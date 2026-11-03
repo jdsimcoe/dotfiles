@@ -317,20 +317,21 @@ sleep 1
 # footer) doesn't sit on the window edge
 defaults write com.superlogical.rex Workspace.terminalPaddingY -float 14
 
-# Import Vercel Dark.ghostty (script/update-vercel-themes writes it) as a
-# Rex theme; Rex names it after the file and selects it. Skipped when it's
-# already imported. Needs Rex running with Remote Control on (Settings > Rex
-# Server).
+# Import the Vercel Dark and Vercel Light Ghostty themes into Rex. Rex names
+# each after its file, detects light or dark, and selects it for that
+# appearance. A theme already imported from its file is skipped. Needs Rex
+# running with Remote Control on (Settings > Rex Server).
 rex_cli="$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex"
-rex_theme="$HOME/.config/ghostty/themes/Vercel Dark.ghostty"
 rex_has_theme() {
 	defaults export com.superlogical.rex - 2>/dev/null | python3 -c '
 import json, plistlib, sys
 themes = json.loads(plistlib.loads(sys.stdin.buffer.read()).get("Workspace.customThemes", b"[]"))
 sys.exit(not any(t.get("source", {}).get("ghosttyFile", {}).get("fileName") == sys.argv[1] for t in themes))
-' "$(basename "$rex_theme")"
+' "$1"
 }
-if [[ -x "$rex_cli" && -f "$rex_theme" ]] && ! rex_has_theme; then
+for rex_theme in "$HOME/.config/ghostty/themes/Vercel Dark.ghostty" "$HOME/.config/ghostty/themes/Vercel Light.ghostty"; do
+	[[ -x "$rex_cli" && -f "$rex_theme" ]] || continue
+	rex_has_theme "$(basename "$rex_theme")" && continue
 	rex_app="$("$rex_cli" client ls --json 2>/dev/null | python3 -c '
 import json, sys
 print(next((c["info"]["label"] for c in json.load(sys.stdin)["clients"] if c.get("info", {}).get("kind") == "app"), ""))
@@ -339,7 +340,7 @@ print(next((c["info"]["label"] for c in json.load(sys.stdin)["clients"] if c.get
 		echo "Rex: open Rex, turn on Remote Control, and import $rex_theme"
 		echo "     (or use Import Theme File in its command palette)."
 	fi
-fi
+done
 
 ###############################################################################
 # Kill affected applications                                                 #

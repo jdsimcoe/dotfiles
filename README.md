@@ -86,17 +86,22 @@ so `git diff` shows any upstream change. It then writes
 `Vercel Dark.ghostty`: `vercel-dark.ghostty` with bright blue (palette 12)
 set to the saturated Geist blue `#52a9ff` instead of the pastel `#97c9fe`,
 because Claude Code colors inline code with ANSI 12 and ignores custom theme
-overrides there. `.macos` imports the same file into Rex (Rex names the theme
-"Vercel Dark"), skipping it once imported; this needs Rex open with
-Remote Control on under Settings > Rex Server. To follow the system appearance, use
-`theme = dark:Vercel Dark.ghostty,light:vercel-light.ghostty`. Their Starship
+overrides there. `Vercel Light.ghostty` (committed, not generated) pairs with
+it: `vercel-light.ghostty`'s background, foreground and grays with the same
+Geist hues and saturations, darkened only until they read on `#fbfbfa` (normal
+slots at 4.6:1, WCAG AA; bright slots at 7.2:1). herdr's `vercel-dark.json` and
+`vercel-light.json` use the same colors. `.macos` imports both files into Rex,
+which names them "Vercel Dark" and "Vercel Light" and selects each for its
+appearance, skipping any already imported; this needs Rex open with Remote
+Control on under Settings > Rex Server. To follow the system appearance, use
+`theme = dark:Vercel Dark.ghostty,light:Vercel Light.ghostty`. Their Starship
 setup expects GeistMono Nerd Font Mono, which `brew.sh` installs as the
 `font-geist-mono-nerd-font` cask. Bundled fonts live under [`fonts/`](fonts/) (Pragma, Berkeley Mono,
 Ranade) and are copied into `~/Library/Fonts/` by setup.
 
 Ghostty uses `theme = dark:Vercel Dark.ghostty,light:Vercel Dark.ghostty`: Vercel's
 official dark theme (with the saturated bright blue) in both appearances, written as a pair so the light override is
-visible (set `light:vercel-light.ghostty` to follow the macOS appearance; `Geist Dark`, the earlier
+visible (set `light:Vercel Light.ghostty` to follow the macOS appearance; `Geist Dark`, the earlier
 Geist-inspired theme, is still in `themes/`). The font is
 `font-family = "GeistMono Nerd Font Mono"` at `font-size = 14`, as in Vercel's
 setup; `brew.sh` installs it (`font-geist-mono-nerd-font` cask), or run

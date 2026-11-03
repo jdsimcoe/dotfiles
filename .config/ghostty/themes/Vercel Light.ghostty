@@ -1,0 +1,27 @@
+# Vercel Light, vivid: vercel-light.ghostty's field, foreground and grays, with
+# the Geist hues and saturations of Vercel Dark's colors, darkened only until
+# they read on #fbfbfa: normal slots 1-6 at 4.6:1 (WCAG AA), bright slots 9-14
+# at 7.2:1.
+background = #fbfbfa
+foreground = #24292f
+cursor-color = #24292f
+cursor-text = #fbfbfa
+selection-background = #dce3ec
+selection-foreground = #24292f
+
+palette = 0=#24292f
+palette = 1=#df2127
+palette = 2=#338142
+palette = 3=#9c6808
+palette = 4=#0070df
+palette = 5=#a23ee9
+palette = 6=#078175
+palette = 7=#4f5359
+palette = 8=#656a70
+palette = 9=#a8181c
+palette = 10=#266031
+palette = 11=#734d06
+palette = 12=#0053a6
+palette = 13=#7d16c6
+palette = 14=#055f56
+palette = 15=#171717
