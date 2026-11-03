@@ -40,6 +40,9 @@ check_link "$REPO_ROOT/.config/starship-plain.toml" "$HOME/.config/starship-plai
 check_link "$REPO_ROOT/.config/nvim" "$HOME/.config/nvim"
 check_link "$REPO_ROOT/.config/ghostty/config" "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
 check_link "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
+for theme in "$REPO_ROOT"/.config/herdr-app/themes/*.json; do
+  check_link "$theme" "$HOME/.config/herdr-app/themes/$(basename "$theme")"
+done
 check_link "$REPO_ROOT/.config/karabiner/karabiner.json" "$HOME/.config/karabiner/karabiner.json"
 check_link "$REPO_ROOT/.config/karabiner/assets/complex_modifications" "$HOME/.config/karabiner/assets/complex_modifications"
 check_link "$REPO_ROOT/.config/zed/settings.json" "$HOME/.config/zed/settings.json"

@@ -137,6 +137,12 @@ link_path "$REPO_ROOT/.config/ghostty/themes" "$HOME/.config/ghostty/themes"
 # Refresh Vercel's official Ghostty themes; offline, the committed copies stay
 bash "$REPO_ROOT/script/update-vercel-themes" || log "warn  Vercel theme refresh failed, keeping committed copies"
 
+# Herdr app themes (settings.json's `theme` names resolve here). Linked per
+# file: the app writes its own files into ~/.config/herdr-app/themes too.
+for theme in "$REPO_ROOT"/.config/herdr-app/themes/*.json; do
+  link_path "$theme" "$HOME/.config/herdr-app/themes/$(basename "$theme")"
+done
+
 # Bundled fonts (Pragma, Berkeley Mono, Ranade, …) -> ~/Library/Fonts
 shopt -s nullglob
 for font in "$REPO_ROOT"/fonts/*/*.{ttf,otf}; do
