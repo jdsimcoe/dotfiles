@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import select
 import shutil
+import subprocess
 import sys
 import tempfile
 import termios
@@ -20,6 +21,10 @@ SUBCOMMANDS = {
     "volume", "seek", "load", "queue", "theme", "vis", "visstream", "shuffle",
     "repeat", "mono", "speed", "eq", "device", "remote", "open", "protocol", "help",
 }
+# cliamp hard-codes its header, so the TUI runs from a copy with the
+# literal swapped. Go stores string lengths in code, so both must be 11 bytes.
+TITLE = b"C L I A M P"
+BRANDED = "▲ M P".encode().ljust(len(TITLE))
 
 
 def config_directory():
@@ -128,6 +133,32 @@ def refresh_theme():
     return False
 
 
+def branded_binary(cliamp):
+    """Return a cached cliamp copy whose header reads BRANDED, or cliamp itself."""
+    source = Path(os.path.realpath(cliamp))
+    cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "cliamp"
+    stat = source.stat()
+    target = cache / f"cliamp-{stat.st_size}-{int(stat.st_mtime)}"
+    if target.exists():
+        return str(target)
+    try:
+        data = source.read_bytes()
+        if data.count(TITLE) != 1:
+            return cliamp
+        cache.mkdir(parents=True, exist_ok=True)
+        for old in cache.glob("cliamp-*"):
+            old.unlink()
+        temp = target.with_suffix(".tmp")
+        temp.write_bytes(data.replace(TITLE, BRANDED))
+        temp.chmod(0o755)
+        # Editing the binary voids its signature; arm64 macOS kills unsigned code.
+        subprocess.run(["codesign", "--force", "--sign", "-", str(temp)], check=True, capture_output=True)
+        temp.rename(target)
+    except (OSError, subprocess.CalledProcessError):
+        return cliamp
+    return str(target)
+
+
 def main():
     args = sys.argv[1:]
     if args == ["--refresh-theme"]:
@@ -155,6 +186,7 @@ def main():
             os.environ["CLIAMP_YTDLP"] = ytdlp
             shim_dir = Path(__file__).resolve().parent / "cliamp-bin"
             os.environ["PATH"] = str(shim_dir) + os.pathsep + os.environ.get("PATH", "")
+        cliamp = branded_binary(cliamp)
     os.execv(cliamp, [cliamp, *args])
 
 

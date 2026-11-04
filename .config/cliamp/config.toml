@@ -9,6 +9,10 @@ bit_depth = 32
 
 theme = "ANSIgray"
 shuffle = false
+# Give the playlist every spare row instead of centering a short frame (Ctrl+X toggles).
+expanded = true
+padding_horizontal = 1
+padding_vertical = 0
 speed = 1.00
 [tidal]
 enabled = true
