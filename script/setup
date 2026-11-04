@@ -212,6 +212,13 @@ else
   log "warn  skip cliamp setup (needs Python 3.11+; run brew.sh, then ./script/setup-cliamp)"
 fi
 
+# Opal Tadpole image profile (.config/tadpole/uvcc.json), re-applied by a LaunchAgent.
+if command -v uvcc >/dev/null 2>&1; then
+  zsh "$REPO_ROOT/script/tadpole" install
+else
+  log "skip  tadpole LaunchAgent (uvcc not installed; run brew.sh, then script/tadpole install)"
+fi
+
 if [[ $RUN_MACOS -eq 1 ]]; then
   if [[ "$(uname -s)" == "Darwin" && -f "$REPO_ROOT/.macos" ]]; then
     log "run   $REPO_ROOT/.macos"

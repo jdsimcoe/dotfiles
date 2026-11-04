@@ -9,6 +9,7 @@ Personal machine setup split into:
 - `script/setup` as the master bootstrap script for new machines
 - `script/clean` as an optional manual maintenance/cleanup script (not run by setup)
 - `script/icons` as a persistent custom-app-icon registry with a LaunchAgent that re-applies them
+- `script/tadpole` with a LaunchAgent that keeps the Opal Tadpole webcam at saturation 0 through uvcc
 - `keyboards/` with keymap backups and flashing notes; `script/flash-cleaver` flashes and verifies the Cleaver HE (see [`keyboards/cleaver/README.md`](keyboards/cleaver/README.md))
 
 #### Starship prompt
@@ -58,6 +59,7 @@ This will:
 - switch your login shell to zsh
 - run `brew.sh` (unless you pass `--skip-brew`), which also installs Node.js LTS through fnm
 - install cliamp settings and visualizers, with ANSIgray and ANSIbrot as defaults
+- install the Opal Tadpole LaunchAgent (`script/tadpole install`) when uvcc is on PATH
 - run `.macos` (unless you pass `--skip-macos`), including setting Mail's message list and message fonts to System 12
 
 Example:
@@ -242,7 +244,7 @@ Node is managed by [fnm](https://github.com/Schniz/fnm), not the Homebrew
 Macs `brew install node` compiles from source for hours. fnm downloads
 official prebuilt nodejs.org binaries for both architectures. `brew.sh`
 installs fnm, the current LTS, and `corepack` (no longer bundled with Node
-25+) and `vercel` through npm, then enables corepack. `.zshrc` activates fnm with `--use-on-cd`, so
+25+), `vercel` and `uvcc` through npm, then enables corepack. `.zshrc` activates fnm with `--use-on-cd`, so
 directories with a `.node-version` or `.nvmrc` switch versions automatically.
 
 ```bash
@@ -416,3 +418,19 @@ icons restore Arc / icons rm Arc / icons doctor
 ```
 
 `overlay` mode is the safe default: it sets a Finder custom icon and locks it with `chflags uchg` so the app's own `setIcon` rewrite fails (side effect: if an updater moves the old bundle to the Trash, Finder will ask before deleting the locked icon file). `bundle` mode replaces the real `.icns` inside the bundle and ad-hoc re-signs, which breaks the Developer ID signature — expect keychain/permission re-prompts and the app's updater may refuse to update, so use it only when overlay isn't enough. Non-`.icns` images (`.png`/`.jpg`/`.tiff`) are converted automatically; Icon Composer `.icon` bundles should first go through `macos-icon` to produce an `.icns`. If iru re-chowns the app back to root, run `script/chowny` and then `icons apply`.
+
+#### Opal Tadpole webcam
+
+The Tadpole is a standard UVC camera, so [uvcc](https://github.com/joelpurra/uvcc) can set its image controls without Opal Composer. `.config/tadpole/uvcc.json` is the profile (currently `saturation: 0`, i.e. grayscale; the range is 0–128, default 64). Controls live in the camera and reset when it re-enumerates, so a LaunchAgent runs `script/tadpole apply` at login and every 30 seconds, and only writes when a value has drifted.
+
+```bash
+script/tadpole status     # snapshot vs. camera values, agent state
+script/tadpole apply      # re-apply now (what the LaunchAgent runs)
+script/tadpole export     # all current camera values, to copy keys into the snapshot
+script/tadpole install    # LaunchAgent: at login and every 30s
+script/tadpole uninstall
+```
+
+Keep the snapshot to the keys you want pinned: `uvcc import` applies them in order, and pinning e.g. `auto_focus` or `white_balance_temperature` overrides the camera's automatic modes. Logs go to `~/Library/Logs/com.jdsimcoe.tadpole/launchd.log`.
+
+uvcc's USB layer (uvc-control) sends class requests to the USB device instead of the VideoControl interface; most webcams accept that, but the Tadpole stalls every request (`LIBUSB_TRANSFER_STALL`). `script/tadpole` patches that one constant in the global uvcc install on every run, so reinstalling or upgrading uvcc is safe. The install bakes the current `node`/`uvcc` directories into the agent's `PATH`, so re-run `script/tadpole install` after switching Node versions.

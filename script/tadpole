@@ -1,0 +1,172 @@
+#!/usr/bin/env zsh
+
+# tadpole — keep an image profile on the Opal Tadpole webcam via uvcc.
+#
+# UVC controls live in the camera and reset when it re-enumerates (replug,
+# sleep/wake), so a LaunchAgent re-applies the snapshot in
+# .config/tadpole/uvcc.json at login and every 30 seconds, but only writes
+# when a value has drifted.
+#
+#   tadpole apply [--quiet]
+#   tadpole status
+#   tadpole export            current camera values as JSON
+#   tadpole install | uninstall
+#
+# uvc-control (uvcc's USB layer) addresses class requests to the device
+# instead of the VideoControl interface. Most webcams tolerate that; the
+# Tadpole answers with LIBUSB_TRANSFER_STALL. ensure_patched fixes the one
+# constant in the global install, and re-runs after any `npm i -g uvcc`.
+
+set -euo pipefail
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"  # launchd has a minimal PATH
+
+SCRIPT_PATH="${0:A}"
+REPO_ROOT="${SCRIPT_PATH:h:h}"
+SNAPSHOT="${TADPOLE_SNAPSHOT:-$REPO_ROOT/.config/tadpole/uvcc.json}"
+VENDOR=13939   # 0x3673 Opal
+PRODUCT=2      # Tadpole
+LOG_DIR="$HOME/Library/Logs/com.jdsimcoe.tadpole"
+AGENT_LABEL="com.jdsimcoe.tadpole"
+AGENT_PLIST="$HOME/Library/LaunchAgents/${AGENT_LABEL}.plist"
+
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+RED="\033[0;31m"
+NC="\033[0m"
+
+QUIET=0
+step() { (( QUIET )) || printf "${YELLOW}▶ %s${NC}\n" "$1"; }
+ok() { (( QUIET )) || printf "${GREEN}✔ %s${NC}\n" "$1"; }
+die() { printf "${RED}✗ %s${NC}\n" "$1" >&2; exit 1; }
+
+usage() {
+  cat <<EOF
+usage: tadpole <command>
+
+  apply [--quiet]   apply the snapshot if the camera drifted from it
+  status            show snapshot vs. camera values
+  export            print the camera's current values as JSON
+  install           install/update the LaunchAgent (login + every 30s)
+  uninstall         remove the LaunchAgent
+
+Snapshot: $SNAPSHOT
+EOF
+}
+
+uvcc_cmd() { uvcc --vendor "$VENDOR" --product "$PRODUCT" "$@"; }
+
+ensure_patched() {
+  command -v uvcc >/dev/null 2>&1 || die "uvcc not found: npm install --global uvcc"
+  local constants
+  constants="$(npm root --global)/uvcc/node_modules/uvc-control/lib/constants.js"
+  [[ -f "$constants" ]] || die "uvc-control not found at $constants"
+  if grep -q 'LIBUSB_RECIPIENT_DEVICE' "$constants"; then
+    sed -i '' 's/usb.LIBUSB_RECIPIENT_DEVICE/usb.LIBUSB_RECIPIENT_INTERFACE/g' "$constants"
+    printf '%s patched uvc-control request recipient\n' "$(date '+%F %T')"
+  fi
+}
+
+camera_present() {
+  uvcc devices 2>/dev/null | jq -e --argjson v "$VENDOR" --argjson p "$PRODUCT" \
+    'any(.[]; .vendor == $v and .product == $p)' >/dev/null
+}
+
+# Snapshot keys whose camera value differs, one per line.
+drifted() {
+  local current
+  current="$(uvcc_cmd export)"
+  jq -r --argjson cur "$current" 'to_entries[] | select($cur[.key] != .value) | .key' "$SNAPSHOT"
+}
+
+cmd_apply() {
+  [[ "${1:-}" == "--quiet" ]] && QUIET=1
+  [[ -f "$SNAPSHOT" ]] || die "snapshot not found: $SNAPSHOT"
+  ensure_patched
+  if ! camera_present; then
+    step "Tadpole not connected"
+    return 0
+  fi
+  local keys
+  keys="$(drifted)"
+  if [[ -z "$keys" ]]; then
+    ok "Tadpole already matches snapshot"
+    return 0
+  fi
+  uvcc_cmd import < "$SNAPSHOT"
+  printf '%s applied %s\n' "$(date '+%F %T')" "${(j:, :)${(f)keys}}"
+}
+
+cmd_status() {
+  ensure_patched
+  camera_present || die "Tadpole not connected"
+  local current
+  current="$(uvcc_cmd export)"
+  jq -r --argjson cur "$current" \
+    'to_entries[] | "\(.key)\tsnapshot \(.value)\tcamera \($cur[.key])"' "$SNAPSHOT"
+  if launchctl print "gui/$UID/$AGENT_LABEL" >/dev/null 2>&1; then
+    ok "LaunchAgent loaded"
+  else
+    step "LaunchAgent not loaded (tadpole install)"
+  fi
+}
+
+cmd_install() {
+  ensure_patched
+  mkdir -p "${AGENT_PLIST:h}" "$LOG_DIR"
+  # Bake in the current PATH so launchd finds the same node/uvcc (fnm or Homebrew).
+  local node_dir uvcc_dir
+  node_dir="$(dirname "$(command -v node)")"
+  uvcc_dir="$(dirname "$(command -v uvcc)")"
+  cat > "$AGENT_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>$AGENT_LABEL</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/zsh</string>
+		<string>$SCRIPT_PATH</string>
+		<string>apply</string>
+		<string>--quiet</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>$uvcc_dir:$node_dir:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StartInterval</key>
+	<integer>30</integer>
+	<key>ProcessType</key>
+	<string>Background</string>
+	<key>StandardOutPath</key>
+	<string>$LOG_DIR/launchd.log</string>
+	<key>StandardErrorPath</key>
+	<string>$LOG_DIR/launchd.log</string>
+</dict>
+</plist>
+EOF
+  plutil -lint "$AGENT_PLIST" >/dev/null
+  launchctl bootout "gui/$UID/$AGENT_LABEL" 2>/dev/null || true
+  launchctl bootstrap "gui/$UID" "$AGENT_PLIST"
+  ok "Loaded $AGENT_LABEL (logs: $LOG_DIR/launchd.log)"
+}
+
+cmd_uninstall() {
+  launchctl bootout "gui/$UID/$AGENT_LABEL" 2>/dev/null || true
+  rm -f "$AGENT_PLIST"
+  ok "Removed $AGENT_LABEL (camera keeps its current values until replugged)"
+}
+
+case "${1:-}" in
+  apply) shift; cmd_apply "$@" ;;
+  status) cmd_status ;;
+  export) ensure_patched; uvcc_cmd export ;;
+  install) cmd_install ;;
+  uninstall) cmd_uninstall ;;
+  -h|--help|help|"") usage ;;
+  *) usage; exit 1 ;;
+esac

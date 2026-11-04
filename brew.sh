@@ -117,6 +117,13 @@ else
   npm install --global vercel
 fi
 
+# uvcc drives the Opal Tadpole's UVC image controls (see script/tadpole).
+if command -v uvcc >/dev/null 2>&1; then
+  echo "  skip uvcc (already on PATH)"
+else
+  npm install --global uvcc
+fi
+
 echo "Installing casks..."
 for cask in "${CASKS[@]}"; do
   if brew list --cask "$cask" >/dev/null 2>&1; then
